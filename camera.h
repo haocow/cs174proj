@@ -17,7 +17,7 @@ public:
 	// Variable Declarations
 	float camX, camY, camZ,
 		  camAtX, camAtY, camAtZ,
-		  viewAngle;
+		  viewAngle, viewAngleY;
 };
 
 #endif

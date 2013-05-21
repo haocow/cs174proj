@@ -3,7 +3,7 @@
 
 float initX = 0;
 float initY = 0;
-float initZ = 10;
+float initZ = 100;
 
 mat4 Camera::matrixCamera()
 {
@@ -21,4 +21,5 @@ void Camera::resetCamera()
 	camAtY = 0;
 	camAtZ = 0;
 	viewAngle = 0;
+	viewAngleY = 0;
 }

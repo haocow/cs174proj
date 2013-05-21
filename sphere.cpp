@@ -12,10 +12,9 @@ point4 v[4] = {
 
 void Sphere::triangle( const point4& a, const point4& b, const point4& c )
 {
-    vec3  normal = normalize( cross(b - a, c - b) );
-	normals[Index] = normal;  points[Index] = a;  Index++;
-	normals[Index] = normal;  points[Index] = b;  Index++;
-	normals[Index] = normal;  points[Index] = c;  Index++;
+	normals[Index] = normalize(vec3(a.x, a.y, a.z));  points[Index] = a;  Index++;
+	normals[Index] = normalize(vec3(b.x, b.y, b.z));  points[Index] = b;  Index++;
+	normals[Index] = normalize(vec3(c.x, c.y, c.z));  points[Index] = c;  Index++;
 }
 
 point4 Sphere::unit( const point4& p )

@@ -6,18 +6,21 @@
 #include <stdio.h>
 #include <iostream>
 #include "Angel.h"
+#include "MyFunctions.h"
 #include "sphere.h"
 #include "camera.h"
+#include "lighting.h"
+
+// Variables for window
+int winHeight = 800;
+int winWidth = 1066;
 
 // Variables for shaders
 GLint vPosition, vNormal,
-	  vCamera, vPerspective,
-	  vColor;
+	  vCamera, vPerspective;
 
 Sphere sphere;
 Camera camera;
-
-float aspect = 1066 / 800;
 
 void myInit( void )
 {
@@ -49,13 +52,29 @@ void myInit( void )
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points)) );
 
 	vPerspective = glGetUniformLocation( program, "PerspectiveMatrix" );
-	glUniformMatrix4fv(vPerspective, 1, false, Perspective(60, aspect, .1, 1000));
+	glUniformMatrix4fv(vPerspective, 1, false, Perspective(60, winWidth/winHeight, .1, 1000));
 
 	vCamera = glGetUniformLocation( program, "CameraMatrix" );
 	glUniformMatrix4fv( vCamera, 1, false, camera.matrixCamera() );
 
-	vColor = glGetUniformLocation( program, "vColor" );
-	glUniform4f( vColor, 1.0, 1.0, 0.0, 1.0 );
+	//**************************
+	//* SCALE VARIABLES ********
+	//**************************
+	ScaleMat = glGetUniformLocation( program, "ScaleMatrix" );
+	setScale(5);
+
+   	//********************************
+	//* LIGHT/COLOR INITIALIZE *******
+	//********************************
+	fMaterialAmbient = glGetUniformLocation(program, "AmbientProduct");
+	fMaterialDiffuse = glGetUniformLocation(program, "DiffuseProduct");
+	fMaterialSpecular = glGetUniformLocation(program, "SpecularProduct");
+	
+    glUniform4fv( glGetUniformLocation(program, "lightPosition"),
+		  1, light_position );
+
+    glUniform1f( glGetUniformLocation(program, "Shininess"),
+		 material_shininess );
 
    	//********************************
 	//* BACKGROUND INITIALIZE ********
@@ -65,6 +84,10 @@ void myInit( void )
 
 void draw_sphere()
 {
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+
 	glDrawArrays( GL_TRIANGLES , 0, numVertices );
 }
 
@@ -98,7 +121,14 @@ void callbackDisplay()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Update Camera
+	glUniformMatrix4fv( vCamera, 1, false, camera.matrixCamera() );
+
+	// Draw the main sphere
+	setColor( 0.5, 0.8, 0.4, 1.0 , 1 );
 	draw_sphere();
+
+	glutWarpPointer(winWidth / 2, winHeight / 2);
 
 	glutSwapBuffers();
 }
@@ -117,6 +147,37 @@ void callbackKeyboard(unsigned char key, int x, int y)
 		case 'q': case 'Q':
 			exit(EXIT_SUCCESS);
 			break;
+		case 'w':
+			camera.camZ -= 1 * cos(camera.viewAngle);
+			camera.camX += 1 * sin(camera.viewAngle);
+			camera.camAtZ -= 1 * cos(camera.viewAngle);
+			camera.camAtX += 1 * sin(camera.viewAngle);
+			camera.camY -= 1 * sin(camera.viewAngleY);
+			camera.camAtY -= 1 * sin(camera.viewAngleY);
+			break;
+		case 'a':
+			camera.camX -= 1 * cos(camera.viewAngle);
+			camera.camZ -= 1 * sin(camera.viewAngle);
+			camera.camAtX -= 1 * cos(camera.viewAngle);
+			camera.camAtZ -= 1 * sin(camera.viewAngle);
+			break;
+		case 's':
+			camera.camZ += 1 * cos(camera.viewAngle);
+			camera.camX -= 1 * sin(camera.viewAngle);
+			camera.camAtZ += 1 * cos(camera.viewAngle);
+			camera.camAtX -= 1 * sin(camera.viewAngle);
+			camera.camY += 1 * sin(camera.viewAngleY);
+			camera.camAtY += 1 * sin(camera.viewAngleY);
+			break;
+		case 'd':
+			camera.camX += 1 * cos(camera.viewAngle);
+			camera.camZ += 1 * sin(camera.viewAngle);
+			camera.camAtX += 1 * cos(camera.viewAngle);
+			camera.camAtZ += 1 * sin(camera.viewAngle);
+			break;
+		case ' ':
+			camera.resetCamera();
+			break;
 	}
 
 	glutPostRedisplay();
@@ -126,6 +187,14 @@ void callbackKeyboard(unsigned char key, int x, int y)
 void callbackSpecial(int key, int x, int y)
 {
 	switch ( key ) {
+		case GLUT_KEY_UP:
+			camera.camY += 1;
+			camera.camAtY += 1;
+			break;
+		case GLUT_KEY_DOWN:
+			camera.camY -= 1;
+			camera.camAtY -= 1;
+			break;
 	}
 
 	glutPostRedisplay();
@@ -146,7 +215,31 @@ void callbackMotion(int x, int y)
 // Called when the mouse is moved with no buttons pressed
 void callbackPassiveMotion(int x, int y)
 {
+	float delta = M_PI/90;
 
+	if (x < winWidth/2)
+	{
+		camera.viewAngle -= delta;
+		camera.camAtX = camera.camX + sin(camera.viewAngle);
+		camera.camAtZ = camera.camZ - cos(camera.viewAngle);
+	}
+	else if (x > winWidth/2)
+	{
+		camera.viewAngle += delta;
+		camera.camAtX = camera.camX + sin(camera.viewAngle);
+		camera.camAtZ = camera.camZ - cos(camera.viewAngle);
+	}
+
+	if (y < winHeight/2)
+	{
+		camera.viewAngleY -= delta;
+		camera.camAtY = camera.camY - sin(camera.viewAngleY);
+	}
+	else if (y > winHeight/2)
+	{
+		camera.viewAngleY += delta;
+		camera.camAtY = camera.camY - sin(camera.viewAngleY);
+	}
 }
 
 // Called when the system is idle. Can be called many times per frame.
