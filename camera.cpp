@@ -1,25 +1,22 @@
 #include "Angel.h"
 #include "camera.h"
 
-float initX = 0;
-float initY = 0;
-float initZ = 100;
-
-mat4 Camera::matrixCamera()
+mat4 Camera::matrixCamera( void )
 {
 	return LookAt( vec4( camX, camY, camZ, 1.0 ),
-				   vec4( camAtX, camAtY, camAtZ, 1.0 ),
-				   vec4( 0.0, 1.0, 0.0, 0.0 ) );
+				   vec4( 0,0,0,1.0 ),
+				   vec4(normalize(vec4(0,1,0, 0.0))) );
 }
 
-void Camera::resetCamera()
+void Camera::resetCamera( void )
 {
-	camX = initX;
-	camY = initY;
-	camZ = initZ;
-	camAtX = 0;
-	camAtY = 0;
-	camAtZ = 0;
-	viewAngle = 0;
-	viewAngleY = 0;
+	angleTheta = M_PI/90;
+	anglePhi = 0;
+}
+
+void Camera::updateCameraPos( void )
+{
+	camX = radiusOfCS*sin(angleTheta)*cos(anglePhi);
+	camY = radiusOfCS*sin(angleTheta)*sin(anglePhi);
+	camZ = radiusOfCS*cos(angleTheta);
 }

@@ -3,6 +3,8 @@
 
 typedef Angel::vec4  color4;
 typedef Angel::vec4  point4;
+typedef Angel::vec3  point3;
+typedef Angel::vec2  point2;
 
 const int numTimesToSubdivideMax = 5;				// number of subdivisions
 const int numTriangles = 4096;					// (number of faces (4)) * (numTimesToSubdivide + 1)
@@ -25,7 +27,8 @@ public:
 
 	// Variable Declarations
 	point4 points[numVertices];
-	vec3 normals[numVertices];
+	point3 normals[numVertices];
+	point2 tex_coords[numVertices];
 };
 
 #endif

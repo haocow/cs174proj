@@ -10,14 +10,21 @@
 #include "sphere.h"
 #include "camera.h"
 #include "lighting.h"
+#include "texture.h"
 
 // Variables for window
 int winHeight = 800;
 int winWidth = 1066;
 
+// Variable for program
+GLuint program;
+
 // Variables for shaders
-GLint vPosition, vNormal,
-	  vCamera, vPerspective;
+GLuint vPosition, vNormal,
+	   vCamera, vPerspective,
+	   sphereID;
+
+TgaImage stars;
 
 Sphere sphere;
 Camera camera;
@@ -34,13 +41,14 @@ void myInit( void )
 	GLuint buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(sphere.points) + sizeof(sphere.normals), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(sphere.points) + sizeof(sphere.normals) + sizeof(sphere.tex_coords), NULL, GL_STATIC_DRAW);
 
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sphere.points), sphere.points);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(sphere.points), sizeof(sphere.normals), sphere.normals);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(sphere.points) + sizeof(sphere.normals), sizeof(sphere.tex_coords), sphere.tex_coords);
 
     // Load shaders and use the resulting shader program
-    GLuint program = InitShader("vshader.glsl", "fshader.glsl");
+    program = InitShader("vshader.glsl", "fshader.glsl");
     glUseProgram(program);
 
 	vPosition = glGetAttribLocation(program, "vPosition");
@@ -52,10 +60,12 @@ void myInit( void )
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points)) );
 
 	vPerspective = glGetUniformLocation( program, "PerspectiveMatrix" );
-	glUniformMatrix4fv(vPerspective, 1, false, Perspective(60, winWidth/winHeight, .1, 1000));
+	glUniformMatrix4fv(vPerspective, 1, false, Perspective(60, winWidth/winHeight, .1, 4000));
 
 	vCamera = glGetUniformLocation( program, "CameraMatrix" );
 	glUniformMatrix4fv( vCamera, 1, false, camera.matrixCamera() );
+
+	sphereID = glGetUniformLocation( program, "fsphereID");
 
 	//**************************
 	//* SCALE VARIABLES ********
@@ -76,7 +86,31 @@ void myInit( void )
     glUniform1f( glGetUniformLocation(program, "Shininess"),
 		 material_shininess );
 
-   	//********************************
+	//**************************
+	//* TEXTURE VARIABLES ******
+	//**************************
+	texInit();
+
+	stars.loadTGA("stars.tga");
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
+
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
+			glEnableVertexAttribArray( vTexCoord );
+            glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
+
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
+	glGenerateMipmap( GL_TEXTURE_2D );
+   	
+	//********************************
 	//* BACKGROUND INITIALIZE ********
 	//********************************
 	glClearColor( 0.0, 0.0, 0.0, 1.0 );		// Black Background
@@ -84,6 +118,19 @@ void myInit( void )
 
 void draw_sphere()
 {
+	// 0 = background
+	// 1 = central sphere
+
+	// Background
+	glUniform1i( sphereID, 0 );
+	setScale( 1000 );
+	glDrawArrays( GL_TRIANGLES , 0, numVertices );
+
+	// Central Sphere
+	glUniform1i( sphereID, 1 );
+	setColor( 0.5, 0.87, 0.13, 1.0, 1.0 );
+	setScale( radiusOfCS - 60 );
+	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
@@ -125,10 +172,8 @@ void callbackDisplay()
 	glUniformMatrix4fv( vCamera, 1, false, camera.matrixCamera() );
 
 	// Draw the main sphere
-	setColor( 0.5, 0.8, 0.4, 1.0 , 1 );
+	setColor( 1, 1, 1, 1.0 , 1 );
 	draw_sphere();
-
-	glutWarpPointer(winWidth / 2, winHeight / 2);
 
 	glutSwapBuffers();
 }
@@ -148,35 +193,33 @@ void callbackKeyboard(unsigned char key, int x, int y)
 			exit(EXIT_SUCCESS);
 			break;
 		case 'w':
-			camera.camZ -= 1 * cos(camera.viewAngle);
-			camera.camX += 1 * sin(camera.viewAngle);
-			camera.camAtZ -= 1 * cos(camera.viewAngle);
-			camera.camAtX += 1 * sin(camera.viewAngle);
-			camera.camY -= 1 * sin(camera.viewAngleY);
-			camera.camAtY -= 1 * sin(camera.viewAngleY);
+			camera.anglePhi += M_PI/90;
+			if (camera.anglePhi > 2*M_PI)
+				camera.anglePhi -= 2*M_PI;
+			camera.updateCameraPos();
 			break;
 		case 'a':
-			camera.camX -= 1 * cos(camera.viewAngle);
-			camera.camZ -= 1 * sin(camera.viewAngle);
-			camera.camAtX -= 1 * cos(camera.viewAngle);
-			camera.camAtZ -= 1 * sin(camera.viewAngle);
+			camera.angleTheta -= M_PI/90;
+			if (camera.angleTheta < 0)
+				camera.angleTheta += 2*M_PI;
+			camera.updateCameraPos();
 			break;
 		case 's':
-			camera.camZ += 1 * cos(camera.viewAngle);
-			camera.camX -= 1 * sin(camera.viewAngle);
-			camera.camAtZ += 1 * cos(camera.viewAngle);
-			camera.camAtX -= 1 * sin(camera.viewAngle);
-			camera.camY += 1 * sin(camera.viewAngleY);
-			camera.camAtY += 1 * sin(camera.viewAngleY);
+			camera.anglePhi -= M_PI/90;
+			if (camera.anglePhi < 0)
+				camera.anglePhi += 2*M_PI;
+			camera.updateCameraPos();
 			break;
 		case 'd':
-			camera.camX += 1 * cos(camera.viewAngle);
-			camera.camZ += 1 * sin(camera.viewAngle);
-			camera.camAtX += 1 * cos(camera.viewAngle);
-			camera.camAtZ += 1 * sin(camera.viewAngle);
+			camera.angleTheta += M_PI/90;
+			if (camera.angleTheta > 2*M_PI)
+				camera.angleTheta -= 2*M_PI;
+			camera.updateCameraPos();
 			break;
+		
 		case ' ':
 			camera.resetCamera();
+			camera.updateCameraPos();
 			break;
 	}
 
@@ -187,14 +230,10 @@ void callbackKeyboard(unsigned char key, int x, int y)
 void callbackSpecial(int key, int x, int y)
 {
 	switch ( key ) {
-		case GLUT_KEY_UP:
-			camera.camY += 1;
-			camera.camAtY += 1;
-			break;
-		case GLUT_KEY_DOWN:
-			camera.camY -= 1;
-			camera.camAtY -= 1;
-			break;
+	case GLUT_KEY_LEFT:
+		break;
+	case GLUT_KEY_RIGHT:
+		break;
 	}
 
 	glutPostRedisplay();
@@ -215,31 +254,33 @@ void callbackMotion(int x, int y)
 // Called when the mouse is moved with no buttons pressed
 void callbackPassiveMotion(int x, int y)
 {
+	/*
 	float delta = M_PI/90;
 
 	if (x < winWidth/2)
 	{
-		camera.viewAngle -= delta;
-		camera.camAtX = camera.camX + sin(camera.viewAngle);
-		camera.camAtZ = camera.camZ - cos(camera.viewAngle);
+		camera.angleTheta -= delta;
+		camera.camAtX = camera.camX + sin(camera.angleTheta);
+		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
 	}
 	else if (x > winWidth/2)
 	{
-		camera.viewAngle += delta;
-		camera.camAtX = camera.camX + sin(camera.viewAngle);
-		camera.camAtZ = camera.camZ - cos(camera.viewAngle);
+		camera.angleTheta += delta;
+		camera.camAtX = camera.camX + sin(camera.angleTheta);
+		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
 	}
 
 	if (y < winHeight/2)
 	{
-		camera.viewAngleY -= delta;
-		camera.camAtY = camera.camY - sin(camera.viewAngleY);
+		camera.anglePhi -= delta;
+		camera.camAtY = camera.camY - sin(camera.anglePhi);
 	}
 	else if (y > winHeight/2)
 	{
-		camera.viewAngleY += delta;
-		camera.camAtY = camera.camY - sin(camera.viewAngleY);
+		camera.anglePhi += delta;
+		camera.camAtY = camera.camY - sin(camera.anglePhi);
 	}
+	*/
 }
 
 // Called when the system is idle. Can be called many times per frame.

@@ -12,9 +12,9 @@ point4 v[4] = {
 
 void Sphere::triangle( const point4& a, const point4& b, const point4& c )
 {
-	normals[Index] = normalize(vec3(a.x, a.y, a.z));  points[Index] = a;  Index++;
-	normals[Index] = normalize(vec3(b.x, b.y, b.z));  points[Index] = b;  Index++;
-	normals[Index] = normalize(vec3(c.x, c.y, c.z));  points[Index] = c;  Index++;
+	points[Index] = a;  Index++;
+	points[Index] = b;  Index++;
+	points[Index] = c;  Index++;
 }
 
 point4 Sphere::unit( const point4& p )
@@ -53,5 +53,21 @@ void Sphere::generateSphere(int count)
     divide_triangle( v[3], v[2], v[1], count );
     divide_triangle( v[0], v[3], v[1], count );
     divide_triangle( v[0], v[2], v[3], count );
+
+	// Normals
+    for (int i = 0; i < numVertices; i++)
+    {
+        normals[i] = point3(points[i].x, points[i].y, points[i].z);
+    }
+
+	// TexCoords
+    double u, v;
+    for (int i = 0; i < numVertices; i++)
+    {
+        v = 0.5 - asin(points[i].y)/M_PI ; //0~1
+        u = 0.5*(atan2(points[i].z,points[i].x)/M_PI + 1); //0~1
+        tex_coords[i] = point2(u,v);
+    }
+
 	Index = 0;
 }
