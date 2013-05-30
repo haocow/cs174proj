@@ -64,8 +64,8 @@ void Sphere::generateSphere(int count)
     double u, v;
     for (int i = 0; i < numVertices; i++)
     {
-        v = 0.5 - asin(points[i].y)/M_PI ; //0~1
-        u = 0.5*(atan2(points[i].z,points[i].x)/M_PI + 1); //0~1
+        v = 10*(0.5 - asin(points[i].y)/M_PI) ; //0~10
+        u = 10*(0.5*(atan2(points[i].z,points[i].x)/M_PI + 1)); //0~10
         tex_coords[i] = point2(u,v);
     }
 
