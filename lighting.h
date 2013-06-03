@@ -20,6 +20,11 @@ color4 ambient_product = light_ambient * material_ambient;
 color4 diffuse_product = light_diffuse * material_diffuse;
 color4 specular_product = light_specular * material_specular;
 
+// Variables for adjustments
+float scaleVal = 5.0;
+bool scaleInc = true;
+vec4 colorAdj( 1.0, 0.0, 1.0 );
+
 // Light related functions
 void setColor(float r, float g, float b, float a, float spec)
 {	

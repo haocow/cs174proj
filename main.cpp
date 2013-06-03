@@ -207,49 +207,105 @@ void draw_sphere()
 	setTranslation( 0, 0, 0 );
 	spawn_sphere();
 
-	// Left Sphere
+	// Origin Sphere
 	glUniform1i( sphereID, 1 );
-	setColor( 0.5, 0.87, 0.13, 1.0, 1.0 );
-	setScale( 10 );
-	setTranslation( -30, 0, 0 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale( scaleVal );
+	setTranslation( 0, 0, 0 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
 
-	// Right Sphere
+	// Neg-Neg-Neg
 	glUniform1i( sphereID, 1 );
-	setColor( 0.5, 0.87, 0.13, 1.0, 1.0 );
-	setScale( 10 );
-	setTranslation( 30, 0, 0 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale( 0.6*scaleVal );
+	setTranslation( -21, -39, -26 );
+	// Lighting
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
+
+	// Neg-Neg-Pos
+	glUniform1i( sphereID, 1 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale( 1.3*scaleVal );
+	setTranslation( -31, -36, +30 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Far Sphere
+    // Neg-Pos-Neg
 	glUniform1i( sphereID, 1 );
-	setColor( 0.6, 0.27, 0.83, 1.0, 1.0 );
-	setScale( 14 );
-	setTranslation( 0, 0, 30 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale ( 1.2*scaleVal );
+	setTranslation( -14, 37, -41 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Front Sphere
+    // Neg-Pos-Pos
 	glUniform1i( sphereID, 1 );
-	setColor( 0.6, 0.27, 0.83, 1.0, 1.0 );
-	setScale( 14 );
-	setTranslation( 0, 0, -30 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale ( 0.9*scaleVal );
+	setTranslation( -30, 22, 38 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
+
+	// Pos-Neg-Neg
+	glUniform1i( sphereID, 1 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale( 1.1*scaleVal );
+	setTranslation( 30, -30, -30 );
+	// Lighting
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
+
+	// Pos-Neg-Pos
+	glUniform1i( sphereID, 1 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale( 0.7*scaleVal );
+	setTranslation( 31, -20, +37 );
+	// Lighting
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
+    
+    // Pos-Pos-Neg
+	glUniform1i( sphereID, 1 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale ( 0.9*scaleVal );
+	setTranslation( 36, 30, -35 );
+	// Lighting
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
+    
+    // Pos-Pos-Pos
+	glUniform1i( sphereID, 1 );
+	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setScale ( scaleVal );
+	setTranslation( 40, 24, 40 );
+	// Lighting
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
+
 }
 
 //************************
@@ -495,6 +551,30 @@ void callbackIdle()
 void callbackTimer(int)
 {
 	glutTimerFunc(1000/30, callbackTimer, 0);
+
+	// Automatic rescaling
+	if ( scaleInc ) {
+		scaleVal += 0.1; }
+	else {
+		scaleVal -= 0.1; }
+
+	if ( scaleVal > 20.0 ) {
+		scaleInc = false; }
+	if ( scaleVal < 5.0 ) {
+		scaleInc = true; }
+
+	// Automatic color adjustment
+	if ( colorAdj[0] < 1.0 ) {
+		colorAdj[0] += 0.005;
+	}
+
+	if ( colorAdj[1] < 1.0 ) {
+		colorAdj[1] += 0.005;
+	}
+
+	if ( colorAdj[2] < 1.0 ) {
+		colorAdj[2] += 0.005;
+	}
 	
 	// Automatic camera rotation
 	camera.autoRotateCam();

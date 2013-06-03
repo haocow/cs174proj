@@ -23,7 +23,8 @@ void Camera::updateCameraPos( void )
 
 void Camera::autoRotateCam( void )
 {
-	angleTheta += M_PI/75;
+	//angleTheta += M_PI/75;
+	angleTheta += M_PI/200;
 	if (angleTheta > 2*M_PI)
 		angleTheta -= 2*M_PI;
 	updateCameraPos();
