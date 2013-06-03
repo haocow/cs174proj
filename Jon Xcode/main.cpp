@@ -8,10 +8,13 @@
 
 // Music stuff
 
-#ifdef __APPLE__
 #include "fmod.hpp" //fmod c++ header
 #include "fmod_errors.h"
-#include <sys/time.h>
+#include <algorithm>
+
+#ifdef __APPLE__
+	#include <sys/time.h>
+#endif
 
 FMOD::System            *fmodSystem;
 FMOD::Sound             *song;
@@ -28,7 +31,6 @@ bool musicPaused = true;
 int sampleSize = 256;
 
 float *specLeft, *specRight, *spec;
-float *waveLeft, *waveRight;
 char *valueString;
 
 // Beat threshold
@@ -55,7 +57,6 @@ float thirdThresholdVolumeLarge = 0.10f;
 int thirdThresholdBar = 13;            // The bar in the volume distribution to examine
 unsigned int thirdPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
 int thirdLastTick = 0;
-#endif
 
 
 
@@ -70,7 +71,7 @@ int thirdLastTick = 0;
 #include "sphere.h"
 #include "camera.h"
 #include "lighting.h"
-#include "tga.h"
+#include "texture.h"
 
 // Variables for window
 int winHeight = 900;
@@ -157,9 +158,11 @@ void myInit( void )
 	//**************************
 	//* TEXTURE VARIABLES ******
 	//**************************
-    if (!stars.loadTGA("stars.tga")){
+	if (!stars.loadTGA("stars.tga")){
         printf("Couldn't load tga file");
     }
+
+#ifdef __APPLE__
     glGenTextures( 1, &textureBackground );
     glBindTexture( GL_TEXTURE_2D, textureBackground );
     glTexImage2D(GL_TEXTURE_2D, 0, 4, stars.width, stars.height, 0,
@@ -172,22 +175,38 @@ void myInit( void )
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     
-    
     glUniform1i( uTex, 0);
     glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
-
+    
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
     glEnableVertexAttribArray( vTexCoord );
     glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
-   	
+#else
+	texInit();
+
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+	glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
+
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
+	glGenerateMipmap( GL_TEXTURE_2D );
+
+	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
+			glEnableVertexAttribArray( vTexCoord );
+            glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
+#endif 	
+
 	//********************************
 	//* BACKGROUND INITIALIZE ********
 	//********************************
 	glClearColor( 0.0, 0.0, 0.0, 1.0 );		// Black Background
     
-    
-#ifdef __APPLE__
-    // MUSIC
+	//********************************
+	//* MUSIC INITIALIZE *************
+	//********************************
     result = FMOD::System_Create(&fmodSystem);
     
     result = fmodSystem->getVersion(&version);
@@ -203,17 +222,12 @@ void myInit( void )
     specLeft = new float[sampleSize];
     specRight = new float[sampleSize];
     spec = new float[sampleSize];
-    waveLeft = new float[sampleSize];
-    waveRight = new float[sampleSize];
     
     for (int i = 0; i<sampleSize; i++){
         specLeft[i] = 0.0;
         specRight[i] = 0.0;
         spec[i] = 0.0;
     }
-    
-    
-#endif
 }
 
 void spawn_sphere()
@@ -229,7 +243,7 @@ void draw_sphere()
 	// Background
 	glUniform1i( sphereID, 0 );
 	setScale( 1000 );
-    setColor( 0, 0, 0, .3, 1 );
+    setColor( 0, 0, 0, 1, 1 );
 	setTranslation( 0, 0, 0 );
 	spawn_sphere();
     
@@ -342,17 +356,16 @@ void draw_sphere()
 // TODO: Don't forget to add glutPostRedisplay().
 void callbackDisplay()
 {
-    
-#ifdef __APPLE__
     // Per-frame FMOD update ('system' is a pointer to FMOD::System)
     fmodSystem->update();
+    //        std::transform(&spec[0], &spec[sampleSize], &spec[0], normalize);
+    //[maxVol] (float dB) -> float { return dB / maxVol; });
+    //    if (!musicPaused)
+    //        printf("%f \n", maxVol);
     
     // Get spectrum for left and right stereo channels
     channel->getSpectrum(specLeft, sampleSize, 0, FMOD_DSP_FFT_WINDOW_RECT);
     channel->getSpectrum(specRight, sampleSize, 1, FMOD_DSP_FFT_WINDOW_RECT);
-    
-    channel->getWaveData(waveLeft, sampleSize, 0);
-    channel->getWaveData(waveRight, sampleSize, 1);
     
     // Find max volume
     auto maxIterator = std::max_element(&spec[0], &spec[sampleSize]);
@@ -369,26 +382,15 @@ void callbackDisplay()
     if (!musicPaused) {
         for (int i = 0; i < 30; i++){
             spec[i] = (specLeft[i] + specRight[i]) / 2;
-            
-//            if (spec[i] > .3){
-//            printf("Left %i: %f \n", i, specLeft[i]);
-//            printf("Right %i: %f \n", i, specRight[i]);
-                
-//                printf("Wave %i: %f \n", i, (waveLeft[i] + waveRight[i]) / 2);
-//            if (spec[i] > .15)
-//                printf("%i: %f \n", i, spec[i]);
-//            }
         }
         
-//        int location = 9;
-//        if(spec[location] > .1){
-//            printf("%f \n", spec[location]);
-//        }
+        int location = 9;
+//		if(spec[location] > .1)
+//			printf("%f \n", spec[location]);
         
         bool beatDetectedSmall = false;
         bool beatDetectedMedium = false;
         bool beatDetectedLarge = false;
-        
         
         timeval t;
         
@@ -482,9 +484,8 @@ void callbackDisplay()
             secondLastTick = 0;
         if (gettimeofday(&t,NULL) - thirdLastTick >= thirdPostIgnore)
             thirdLastTick = 0;
-    }
-#endif
-    
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Update Camera
@@ -536,9 +537,13 @@ void callbackKeyboard(unsigned char key, int x, int y)
 				camera.angleTheta -= 2*M_PI;
 			camera.updateCameraPos();
 			break;
-            
-#ifdef __APPLE__
-        case 'p':
+		case 'i':
+			camera.zoomIn();
+			break;
+		case 'o':
+			camera.zoomOut();
+			break;
+		case 'p':
             // Play or pause the sound
             if (!musicPaused){
                 result = channel->setPaused(musicPaused = true);
@@ -546,7 +551,6 @@ void callbackKeyboard(unsigned char key, int x, int y)
                 result = channel->setPaused(musicPaused = false);
             }
             break;
-#endif
 		case ' ':
 			camera.resetCamera();
 			camera.updateCameraPos();
@@ -634,7 +638,7 @@ void callbackTimer(int)
     //1st is for the beats
     
     for (int i = 0; i < 3; i++){
-        scaleVal[i] -= .5;
+        scaleVal[i] -= .2;
         if ( scaleVal[i] > 15.0 ) {
             scaleVal[i] = 2;}
         if ( scaleVal[i] < 8.0 ) {
@@ -681,7 +685,6 @@ void initGlut(int& argc, char** argv)
 {
 	glutInit(&argc, argv);
 #ifdef __APPLE__  // include Mac OS X verions of headers
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
 #else // non-Mac OS X operating systems
     glutInitContextVersion( 3, 2 );
