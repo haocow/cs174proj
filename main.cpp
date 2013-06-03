@@ -40,9 +40,17 @@ int beatLastTick = 0;                // Time when last beat occurred
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+<<<<<<< HEAD
 #ifdef __APPLE__ 
 #include <GL/glew.h>
 #endif
+=======
+
+#ifdef __APPLE__ 
+#include <GL/glew.h>
+#endif
+
+>>>>>>> 63488d6b4f89add29d6f1e502faec4eecdefadbb
 #include "Angel.h"
 #include "MyFunctions.h"
 #include "sphere.h"
@@ -255,14 +263,23 @@ void draw_sphere()
 void initGlut(int& argc, char** argv)
 {
 	glutInit(&argc, argv);
+<<<<<<< HEAD
     #ifdef __APPLE__  // include Mac OS X verions of headers
+=======
+
+	#ifdef __APPLE__  // include Mac OS X verions of headers
+>>>>>>> 63488d6b4f89add29d6f1e502faec4eecdefadbb
         glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
     #else // non-Mac OS X operating systems
         glutInitContextVersion( 3, 2 );
         glutInitContextProfile( GLUT_CORE_PROFILE );
         glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     #endif  // __APPLE__
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 63488d6b4f89add29d6f1e502faec4eecdefadbb
 	glutInitWindowPosition(400, 0);
 	glutInitWindowSize(winWidth, winHeight);
 	glutCreateWindow("Music Visualizer - Hao, Nguy, Sabatine");
