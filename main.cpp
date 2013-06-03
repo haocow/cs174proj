@@ -28,15 +28,33 @@ bool musicPaused = true;
 int sampleSize = 256;
 
 float *specLeft, *specRight, *spec;
+float *waveLeft, *waveRight;
 char *valueString;
 
-// Beat threasholds
+// Beat threshold
 float beatThresholdVolumeSmall = 0.3f;
 float beatThresholdVolumeMedium = 0.6f;
 float beatThresholdVolumeLarge = 0.9f;
 int beatThresholdBar = 1;            // The bar in the volume distribution to examine
 unsigned int beatPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
 int beatLastTick = 0;                // Time when last beat occurred
+
+// 2nd threshold
+float secondThresholdVolumeSmall = 0.03f;
+float secondThresholdVolumeMedium = 0.08f;
+float secondThresholdVolumeLarge = 0.10f;
+int secondThresholdBar = 9;            // The bar in the volume distribution to examine
+unsigned int secondPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
+int secondLastTick = 0;
+
+
+// 3rd threshold
+float thirdThresholdVolumeSmall = 0.01f;
+float thirdThresholdVolumeMedium = 0.05f;
+float thirdThresholdVolumeLarge = 0.10f;
+int thirdThresholdBar = 13;            // The bar in the volume distribution to examine
+unsigned int thirdPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
+int thirdLastTick = 0;
 #endif
 
 
@@ -70,6 +88,8 @@ TgaImage stars;
 
 Sphere sphere;
 Camera camera;
+
+GLuint textureBackground, uTex;
 
 void myInit( void )
 {
@@ -137,26 +157,40 @@ void myInit( void )
 	//**************************
 	//* TEXTURE VARIABLES ******
 	//**************************
-	texInit();
+//	texInit();
 
-	stars.loadTGA("stars.tga");
-
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-
-    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
-
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    if (!stars.loadTGA("stars.tga")){
+        printf("Couldn't load tga file");
+    }
+    
+    glGenTextures( 1, &textureBackground );
+    glBindTexture( GL_TEXTURE_2D, textureBackground );
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, stars.width, stars.height, 0,
+                 (stars.byteCount == 3) ? GL_BGR : GL_BGRA,
+                 GL_UNSIGNED_BYTE, stars.data );
+    glGenerateMipmap(GL_TEXTURE_2D);
+    
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    
+    glUniform1i( uTex, 0);
+//    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
+//    glUniform1i( uTex, 0);
+    glUniform1i( glGetUniformLocation(program, "texture"), 0 );
+//
+//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+//    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+//    
+    printf("width: %d, height: %d", stars.width, stars.height);
+//	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
+//	glGenerateMipmap( GL_TEXTURE_2D );
 
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
 			glEnableVertexAttribArray( vTexCoord );
             glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
 
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
-	glGenerateMipmap( GL_TEXTURE_2D );
    	
 	//********************************
 	//* BACKGROUND INITIALIZE ********
@@ -181,12 +215,16 @@ void myInit( void )
     specLeft = new float[sampleSize];
     specRight = new float[sampleSize];
     spec = new float[sampleSize];
+    waveLeft = new float[sampleSize];
+    waveRight = new float[sampleSize];
     
     for (int i = 0; i<sampleSize; i++){
         specLeft[i] = 0.0;
         specRight[i] = 0.0;
         spec[i] = 0.0;
     }
+    
+    
 #endif
 }
 
@@ -199,40 +237,40 @@ void draw_sphere()
 {
 	// 0 = background
 	// 1 = central sphere
-
+    
 	// Background
 	glUniform1i( sphereID, 0 );
 	setScale( 1000 );
     setColor( 0, 0, 0, 1, 1 );
 	setTranslation( 0, 0, 0 );
 	spawn_sphere();
-
-	// Origin Sphere - 1
+    
+	// Origin Sphere
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
-	setScale( scaleVal );
+	setScale( scaleVal[0] );
 	setTranslation( 0, 0, 0 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
-
-	// Neg-Neg-Neg - 2
+    
+	// Neg-Neg-Neg
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
-	setScale( 0.6*scaleVal );
+	setScale( 0.6*scaleVal[1] );
 	setTranslation( -21, -39, -26 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
-
-	// Neg-Neg-Pos - 3
+    
+	// Neg-Neg-Pos
 	glUniform1i( sphereID, 1 );
-	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
-	setScale( 1.3*scaleVal );
+	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
+	setScale( 1.3*scaleVal[1] );
 	setTranslation( -31, -36, +30 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
@@ -240,10 +278,10 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Neg-Pos-Neg - 4
+    // Neg-Pos-Neg
 	glUniform1i( sphereID, 1 );
-	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
-	setScale ( 1.2*scaleVal );
+	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
+	setScale ( 1.2*scaleVal[0] );
 	setTranslation( -14, 37, -41 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
@@ -251,32 +289,32 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Neg-Pos-Pos - 5
+    // Neg-Pos-Pos
 	glUniform1i( sphereID, 1 );
-	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
-	setScale ( 0.9*scaleVal );
+	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
+	setScale ( 0.9*scaleVal[0] );
 	setTranslation( -30, 22, 38 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
-
-	// Pos-Neg-Neg - 6
+    
+	// Pos-Neg-Neg
 	glUniform1i( sphereID, 1 );
-	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
-	setScale( 1.1*scaleVal );
+	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
+	setScale( 1.1*scaleVal[2] );
 	setTranslation( 30, -30, -30 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
-
-	// Pos-Neg-Pos - 7
+    
+	// Pos-Neg-Pos
 	glUniform1i( sphereID, 1 );
-	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
-	setScale( 0.7*scaleVal );
+	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
+	setScale( 0.7*scaleVal[0] );
 	setTranslation( 31, -20, +37 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
@@ -284,10 +322,10 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Pos-Pos-Neg - 8
+    // Pos-Pos-Neg
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
-	setScale ( 0.9*scaleVal );
+	setScale ( 0.9*scaleVal[2] );
 	setTranslation( 36, 30, -35 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
@@ -295,10 +333,10 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Pos-Pos-Pos - 9
+    // Pos-Pos-Pos
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
-	setScale ( scaleVal );
+	setScale ( scaleVal[1] );
 	setTranslation( 40, 24, 40 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
@@ -311,31 +349,6 @@ void draw_sphere()
 //************************
 //* GLUT HARNESS CODE ****
 //************************
-
-void initGlut(int& argc, char** argv)
-{
-	glutInit(&argc, argv);
-    #ifdef __APPLE__  // include Mac OS X verions of headers
-        glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
-    #else // non-Mac OS X operating systems
-        glutInitContextVersion( 3, 2 );
-        glutInitContextProfile( GLUT_CORE_PROFILE );
-        glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    #endif  // __APPLE__
-    
-	glutInitWindowPosition(400, 0);
-	glutInitWindowSize(winWidth, winHeight);
-	glutCreateWindow("Music Visualizer - Hao, Nguy, Sabatine");
-
-	glewExperimental = GL_TRUE;
-	glewInit();
-
-	// Enable Depth
-	glEnable( GL_DEPTH_TEST );
-
-	// Stores the points for the original cube
-	myInit();
-}
 
 // Called when the window needs to be redrawn.
 // TODO: Don't forget to add glutPostRedisplay().
@@ -354,6 +367,9 @@ void callbackDisplay()
     channel->getSpectrum(specLeft, sampleSize, 0, FMOD_DSP_FFT_WINDOW_RECT);
     channel->getSpectrum(specRight, sampleSize, 1, FMOD_DSP_FFT_WINDOW_RECT);
     
+    channel->getWaveData(waveLeft, sampleSize, 0);
+    channel->getWaveData(waveRight, sampleSize, 1);
+    
     // Find max volume
     auto maxIterator = std::max_element(&spec[0], &spec[sampleSize]);
     float maxVol = *maxIterator;
@@ -367,23 +383,30 @@ void callbackDisplay()
     //        printf("Max vol: %f \n", maxVol);
     
     if (!musicPaused) {
-        for (int i = 0; i < sampleSize; i++){
+        for (int i = 0; i < 30; i++){
             spec[i] = (specLeft[i] + specRight[i]) / 2;
             
-            if (spec[i] > .3){
-            printf("Left %i: %f \n", i, specLeft[i]);
-            printf("Right %i: %f \n", i, specRight[i]);
-            //            if (spec[i] > .15)
-            //                printf("%i: %f \n", i, spec[i]);
-            }
+//            if (spec[i] > .3){
+//            printf("Left %i: %f \n", i, specLeft[i]);
+//            printf("Right %i: %f \n", i, specRight[i]);
+                
+//                printf("Wave %i: %f \n", i, (waveLeft[i] + waveRight[i]) / 2);
+//            if (spec[i] > .15)
+//                printf("%i: %f \n", i, spec[i]);
+//            }
+        }
+        
+        int location = 9;
+        if(spec[location] > .1){
+//            printf("%f \n", spec[location]);
         }
         
         bool beatDetectedSmall = false;
         bool beatDetectedMedium = false;
         bool beatDetectedLarge = false;
         
-        timeval t;
         
+        timeval t;
         
         // Test for threshold volume being exceeded (if not currently ignoring track)
         if ((spec[beatThresholdBar] >= beatThresholdVolumeLarge ||
@@ -402,14 +425,79 @@ void callbackDisplay()
         }
         
         if (beatDetectedLarge) {
+            if (spec[beatThresholdBar] >= beatThresholdVolumeLarge)
+                scaleVal[0] += spec[beatThresholdBar];
+            else
+                scaleVal[0] += spec[beatThresholdBar+1];
         } else if (beatDetectedMedium) {
+            if (spec[beatThresholdBar] >= beatThresholdVolumeMedium)
+                scaleVal[0] += spec[beatThresholdBar]/5;
+            else
+                scaleVal[0] += spec[beatThresholdBar+1]/5;
         } else if (beatDetectedSmall) {
-            
+            if (spec[beatThresholdBar] >= beatThresholdVolumeMedium)
+                scaleVal[0] += spec[beatThresholdBar]/10;
+            else
+                scaleVal[0] += spec[beatThresholdBar+1]/10;
+        }
+        
+        // Test for threshold volume being exceeded (if not currently ignoring track)
+        if ((spec[secondThresholdBar] >= secondThresholdVolumeLarge ||
+             spec[secondThresholdBar+1] >= secondThresholdVolumeLarge) && secondLastTick == 0)
+        {
+            secondLastTick = gettimeofday(&t,NULL);
+            if (spec[secondThresholdBar] >= secondThresholdVolumeLarge)
+                scaleVal[1] += spec[secondThresholdBar];
+            else
+                scaleVal[1] += spec[secondThresholdBar+1];
+        } else if ((spec[secondThresholdBar] >= secondThresholdVolumeMedium ||
+                    spec[secondThresholdBar+1] >= secondThresholdVolumeMedium) && secondLastTick == 0) {
+            secondLastTick = gettimeofday(&t,NULL);
+            if (spec[secondThresholdBar] >= secondThresholdVolumeMedium)
+                scaleVal[1] += spec[secondThresholdBar];
+            else
+                scaleVal[1] += spec[secondThresholdBar+1];
+        } else if ((spec[secondThresholdBar] >= secondThresholdVolumeSmall ||
+                    spec[secondThresholdBar+1] >= secondThresholdVolumeSmall) && secondLastTick == 0) {
+            secondLastTick = gettimeofday(&t,NULL);
+            if (spec[secondThresholdBar] >= secondThresholdVolumeSmall)
+                scaleVal[1] += spec[secondThresholdBar];
+            else
+                scaleVal[1] += spec[secondThresholdBar+1];
+        }
+        
+        // Test for threshold volume being exceeded (if not currently ignoring track)
+        if ((spec[thirdThresholdBar] >= thirdThresholdVolumeLarge ||
+             spec[thirdThresholdBar+1] >= thirdThresholdVolumeLarge) && thirdLastTick == 0)
+        {
+            thirdLastTick = gettimeofday(&t,NULL);
+            if (spec[thirdThresholdBar] >= thirdThresholdVolumeLarge)
+                scaleVal[2] += spec[thirdThresholdBar];
+            else
+                scaleVal[2] += spec[thirdThresholdBar+1];
+        } else if ((spec[thirdThresholdBar] >= thirdThresholdVolumeMedium ||
+                    spec[thirdThresholdBar+1] >= thirdThresholdVolumeMedium) && thirdLastTick == 0) {
+            thirdLastTick = gettimeofday(&t,NULL);
+            if (spec[thirdThresholdBar] >= thirdThresholdVolumeMedium)
+                scaleVal[2] += spec[thirdThresholdBar];
+            else
+                scaleVal[2] += spec[thirdThresholdBar+1];
+        } else if ((spec[thirdThresholdBar] >= thirdThresholdVolumeSmall ||
+                    spec[thirdThresholdBar+1] >= thirdThresholdVolumeSmall) && thirdLastTick == 0) {
+            thirdLastTick = gettimeofday(&t,NULL);
+            if (spec[thirdThresholdBar] >= thirdThresholdVolumeSmall)
+                scaleVal[2] += spec[thirdThresholdBar];
+            else
+                scaleVal[2] += spec[thirdThresholdBar+1];
         }
         
         // If the ignore time has expired, allow testing for a beat again
         if (gettimeofday(&t,NULL) - beatLastTick >= beatPostIgnore)
             beatLastTick = 0;
+        if (gettimeofday(&t,NULL) - secondLastTick >= secondPostIgnore)
+            secondLastTick = 0;
+        if (gettimeofday(&t,NULL) - thirdLastTick >= thirdPostIgnore)
+            thirdLastTick = 0;
     }
 #endif
     
@@ -512,6 +600,33 @@ void callbackMotion(int x, int y)
 // Called when the mouse is moved with no buttons pressed
 void callbackPassiveMotion(int x, int y)
 {
+	/*
+	float delta = M_PI/90;
+
+	if (x < winWidth/2)
+	{
+		camera.angleTheta -= delta;
+		camera.camAtX = camera.camX + sin(camera.angleTheta);
+		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
+	}
+	else if (x > winWidth/2)
+	{
+		camera.angleTheta += delta;
+		camera.camAtX = camera.camX + sin(camera.angleTheta);
+		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
+	}
+
+	if (y < winHeight/2)
+	{
+		camera.anglePhi -= delta;
+		camera.camAtY = camera.camY - sin(camera.anglePhi);
+	}
+	else if (y > winHeight/2)
+	{
+		camera.anglePhi += delta;
+		camera.camAtY = camera.camY - sin(camera.anglePhi);
+	}
+	*/
 }
 
 // Called when the system is idle. Can be called many times per frame.
@@ -524,11 +639,24 @@ void callbackIdle()
 void callbackTimer(int)
 {
 	glutTimerFunc(1000/30, callbackTimer, 0);
-
-	// Automatic color adjustment
-	for (int i = 0; i < 3; i++)
-	{
-		// x
+    
+	// Automatic rescaling
+//	if ( scaleInc ) {
+//		scaleVal += 0.1; }
+//	else {
+//		scaleVal -= 0.3;
+//}
+    
+    //1st is for the beats
+    
+    for (int i = 0; i < 3; i++){
+        scaleVal[i] -= .2;
+        if ( scaleVal[i] > 15.0 ) {
+            scaleVal[i] = 2;}
+        if ( scaleVal[i] < 8.0 ) {
+            scaleVal[i] = 8.0;}
+        
+        // x
 		if (!colorDir[i*3])
 			colorArray[i].x += ((i*.03) + .02);
 		else
@@ -547,7 +675,7 @@ void callbackTimer(int)
 			colorDir[(i*3) + 1] = true;
 		else if (colorArray[i].y <= 0)
 			colorDir[(i*3) + 1] = false;
-
+        
 		// z
 		if (!colorDir[(i*3) + 2])
 			colorArray[i].z += ((i*.02) + .02);
@@ -557,12 +685,37 @@ void callbackTimer(int)
 			colorDir[(i*3) + 2] = true;
 		else if (colorArray[i].z <= 0)
 			colorDir[(i*3) + 2] = false;
-	}
-	
+    }
 	// Automatic camera rotation
 	camera.autoRotateCam();
-
+    
 	glutPostRedisplay();
+}
+
+
+void initGlut(int& argc, char** argv)
+{
+	glutInit(&argc, argv);
+#ifdef __APPLE__  // include Mac OS X verions of headers
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
+#else // non-Mac OS X operating systems
+    glutInitContextVersion( 3, 2 );
+    glutInitContextProfile( GLUT_CORE_PROFILE );
+    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+#endif  // __APPLE__
+    
+	glutInitWindowPosition(400, 0);
+	glutInitWindowSize(winWidth, winHeight);
+	glutCreateWindow("Music Visualizer - Hao, Nguy, Sabatine");
+    
+	glewExperimental = GL_TRUE;
+	glewInit();
+    
+	// Enable Depth
+	glEnable( GL_DEPTH_TEST );
+    
+	// Stores the points for the original cube
+	myInit();
 }
 
 void initCallbacks()
