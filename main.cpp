@@ -588,33 +588,6 @@ void callbackMotion(int x, int y)
 // Called when the mouse is moved with no buttons pressed
 void callbackPassiveMotion(int x, int y)
 {
-	/*
-	float delta = M_PI/90;
-
-	if (x < winWidth/2)
-	{
-		camera.angleTheta -= delta;
-		camera.camAtX = camera.camX + sin(camera.angleTheta);
-		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
-	}
-	else if (x > winWidth/2)
-	{
-		camera.angleTheta += delta;
-		camera.camAtX = camera.camX + sin(camera.angleTheta);
-		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
-	}
-
-	if (y < winHeight/2)
-	{
-		camera.anglePhi -= delta;
-		camera.camAtY = camera.camY - sin(camera.anglePhi);
-	}
-	else if (y > winHeight/2)
-	{
-		camera.anglePhi += delta;
-		camera.camAtY = camera.camY - sin(camera.anglePhi);
-	}
-	*/
 }
 
 // Called when the system is idle. Can be called many times per frame.
