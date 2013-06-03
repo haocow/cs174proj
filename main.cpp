@@ -207,9 +207,9 @@ void draw_sphere()
 	setTranslation( 0, 0, 0 );
 	spawn_sphere();
 
-	// Origin Sphere
+	// Origin Sphere - 1
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
 	setScale( scaleVal );
 	setTranslation( 0, 0, 0 );
 	// Lighting
@@ -218,9 +218,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
 
-	// Neg-Neg-Neg
+	// Neg-Neg-Neg - 2
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
 	setScale( 0.6*scaleVal );
 	setTranslation( -21, -39, -26 );
 	// Lighting
@@ -229,9 +229,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
 
-	// Neg-Neg-Pos
+	// Neg-Neg-Pos - 3
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
 	setScale( 1.3*scaleVal );
 	setTranslation( -31, -36, +30 );
 	// Lighting
@@ -240,9 +240,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Neg-Pos-Neg
+    // Neg-Pos-Neg - 4
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
 	setScale ( 1.2*scaleVal );
 	setTranslation( -14, 37, -41 );
 	// Lighting
@@ -251,9 +251,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Neg-Pos-Pos
+    // Neg-Pos-Pos - 5
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
 	setScale ( 0.9*scaleVal );
 	setTranslation( -30, 22, 38 );
 	// Lighting
@@ -262,9 +262,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
 
-	// Pos-Neg-Neg
+	// Pos-Neg-Neg - 6
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
 	setScale( 1.1*scaleVal );
 	setTranslation( 30, -30, -30 );
 	// Lighting
@@ -273,9 +273,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
 
-	// Pos-Neg-Pos
+	// Pos-Neg-Pos - 7
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
 	setScale( 0.7*scaleVal );
 	setTranslation( 31, -20, +37 );
 	// Lighting
@@ -284,9 +284,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Pos-Pos-Neg
+    // Pos-Pos-Neg - 8
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
 	setScale ( 0.9*scaleVal );
 	setTranslation( 36, 30, -35 );
 	// Lighting
@@ -295,9 +295,9 @@ void draw_sphere()
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Pos-Pos-Pos
+    // Pos-Pos-Pos - 9
 	glUniform1i( sphereID, 1 );
-	setColor( colorAdj[0], colorAdj[1], colorAdj[2], 1.0, 1.0 );
+	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
 	setScale ( scaleVal );
 	setTranslation( 40, 24, 40 );
 	// Lighting
@@ -512,33 +512,6 @@ void callbackMotion(int x, int y)
 // Called when the mouse is moved with no buttons pressed
 void callbackPassiveMotion(int x, int y)
 {
-	/*
-	float delta = M_PI/90;
-
-	if (x < winWidth/2)
-	{
-		camera.angleTheta -= delta;
-		camera.camAtX = camera.camX + sin(camera.angleTheta);
-		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
-	}
-	else if (x > winWidth/2)
-	{
-		camera.angleTheta += delta;
-		camera.camAtX = camera.camX + sin(camera.angleTheta);
-		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
-	}
-
-	if (y < winHeight/2)
-	{
-		camera.anglePhi -= delta;
-		camera.camAtY = camera.camY - sin(camera.anglePhi);
-	}
-	else if (y > winHeight/2)
-	{
-		camera.anglePhi += delta;
-		camera.camAtY = camera.camY - sin(camera.anglePhi);
-	}
-	*/
 }
 
 // Called when the system is idle. Can be called many times per frame.
@@ -552,28 +525,38 @@ void callbackTimer(int)
 {
 	glutTimerFunc(1000/30, callbackTimer, 0);
 
-	// Automatic rescaling
-	if ( scaleInc ) {
-		scaleVal += 0.1; }
-	else {
-		scaleVal -= 0.1; }
-
-	if ( scaleVal > 20.0 ) {
-		scaleInc = false; }
-	if ( scaleVal < 5.0 ) {
-		scaleInc = true; }
-
 	// Automatic color adjustment
-	if ( colorAdj[0] < 1.0 ) {
-		colorAdj[0] += 0.005;
-	}
+	for (int i = 0; i < 3; i++)
+	{
+		// x
+		if (!colorDir[i*3])
+			colorArray[i].x += ((i*.03) + .02);
+		else
+			colorArray[i].x -= ((i*.01) + .05);
+		if (colorArray[i].x >= 1)
+			colorDir[(i*3)] = true;
+		else if (colorArray[i].x <= 0)
+			colorDir[(i*3)] = false;
+		
+		// y
+		if (!colorDir[(i*3) + 1])
+			colorArray[i].y += ((i*.03) + .01);
+		else
+			colorArray[i].y -= ((i*.02) + .01);
+		if (colorArray[i].y >= 1)
+			colorDir[(i*3) + 1] = true;
+		else if (colorArray[i].y <= 0)
+			colorDir[(i*3) + 1] = false;
 
-	if ( colorAdj[1] < 1.0 ) {
-		colorAdj[1] += 0.005;
-	}
-
-	if ( colorAdj[2] < 1.0 ) {
-		colorAdj[2] += 0.005;
+		// z
+		if (!colorDir[(i*3) + 2])
+			colorArray[i].z += ((i*.02) + .02);
+		else
+			colorArray[i].z -= ((i*.01) + .04);
+		if (colorArray[i].z >= 1)
+			colorDir[(i*3) + 2] = true;
+		else if (colorArray[i].z <= 0)
+			colorDir[(i*3) + 2] = false;
 	}
 	
 	// Automatic camera rotation

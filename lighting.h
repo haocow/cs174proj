@@ -20,11 +20,15 @@ color4 ambient_product = light_ambient * material_ambient;
 color4 diffuse_product = light_diffuse * material_diffuse;
 color4 specular_product = light_specular * material_specular;
 
-// Variables for adjustments
+// colorArray
 float scaleVal = 5.0;
-bool scaleInc = true;
 vec4 colorAdj( 1.0, 0.0, 1.0 );
 
+bool colorDir[9] = {false, false, false, false, false, false, false, false, false};
+
+color4 colorArray[3] = {color4( .26, .40, .82, 1 ),
+						color4( .71, .41, .90, 1 ),
+						color4( .30, .71, .53, 1 )};
 // Light related functions
 void setColor(float r, float g, float b, float a, float spec)
 {	

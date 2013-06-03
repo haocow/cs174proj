@@ -4,8 +4,8 @@
 mat4 Camera::matrixCamera( void )
 {
 	return LookAt( vec4( camX, camY, camZ, 1.0 ),
-				   vec4( 0,0,0,1.0 ),
-				   vec4(normalize(vec4(0,1,0, 0.0))) );
+				   vec4( 0,0,0,1 ),
+				   vec4( 0,1,0,1 ));
 }
 
 void Camera::resetCamera( void )
@@ -23,7 +23,6 @@ void Camera::updateCameraPos( void )
 
 void Camera::autoRotateCam( void )
 {
-	//angleTheta += M_PI/75;
 	angleTheta += M_PI/200;
 	if (angleTheta > 2*M_PI)
 		angleTheta -= 2*M_PI;
