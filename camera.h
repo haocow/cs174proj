@@ -1,7 +1,8 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
-const float radiusOfCS = 130;
+const float zoomDelta = 2;
+const float zoomThreshhold = 40;
 
 class Camera
 {
@@ -18,6 +19,8 @@ public:
 	void resetCamera( void );
 	void updateCameraPos( void );
 	void autoRotateCam( void );
+	void zoomIn( void );
+	void zoomOut( void );
 
 	// Variable Declarations
 	float camX, camY, camZ,

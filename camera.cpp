@@ -1,6 +1,8 @@
 #include "Angel.h"
 #include "camera.h"
 
+float radiusOfCS = 130;
+
 mat4 Camera::matrixCamera( void )
 {
 	return LookAt( vec4( camX, camY, camZ, 1.0 ),
@@ -27,4 +29,16 @@ void Camera::autoRotateCam( void )
 	if (angleTheta > 2*M_PI)
 		angleTheta -= 2*M_PI;
 	updateCameraPos();
+}
+
+void Camera::zoomIn( void )
+{
+	radiusOfCS -= zoomDelta;
+	if (radiusOfCS < zoomThreshhold)
+		radiusOfCS += zoomDelta;
+}
+
+void Camera::zoomOut( void )
+{
+	radiusOfCS += zoomDelta;
 }

@@ -158,7 +158,10 @@ void myInit( void )
 	//**************************
 	//* TEXTURE VARIABLES ******
 	//**************************
-//	texInit();
+	if (!stars.loadTGA("stars.tga")){
+        printf("Couldn't load tga file");
+    }
+
 #ifdef __APPLE__
     glGenTextures( 1, &textureBackground );
     glBindTexture( GL_TEXTURE_2D, textureBackground );
@@ -179,10 +182,6 @@ void myInit( void )
     glEnableVertexAttribArray( vTexCoord );
     glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
 #else
-	if (!stars.loadTGA("stars.tga")){
-        printf("Couldn't load tga file");
-    }
-
 	texInit();
 
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -537,7 +536,13 @@ void callbackKeyboard(unsigned char key, int x, int y)
 			if (camera.angleTheta > 2*M_PI)
 				camera.angleTheta -= 2*M_PI;
 			camera.updateCameraPos();
-			break;       
+			break;
+		case 'i':
+			camera.zoomIn();
+			break;
+		case 'o':
+			camera.zoomOut();
+			break;
 		case 'p':
             // Play or pause the sound
             if (!musicPaused){
