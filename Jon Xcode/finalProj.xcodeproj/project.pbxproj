@@ -20,11 +20,12 @@
 		341BDF17175C5967006ABE98 /* vshader.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 341BDF15175C5967006ABE98 /* vshader.glsl */; };
 		341BDF21175C60A1006ABE98 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341BDF19175C60A1006ABE98 /* camera.cpp */; };
 		341BDF22175C60A1006ABE98 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341BDF1C175C60A1006ABE98 /* main.cpp */; };
-		341BDF23175C60A1006ABE98 /* sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341BDF1E175C60A1006ABE98 /* sphere.cpp */; };
 		345E5E6B175BF50A005AE9CE /* libfmodex.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 345E5E58175BF2D6005AE9CE /* libfmodex.dylib */; };
 		345E5E6C175BF50A005AE9CE /* libfmodexL.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 345E5E59175BF2D6005AE9CE /* libfmodexL.dylib */; };
-		34B1B5B1175C7CAA00B0E0ED /* stars.tga in Resources */ = {isa = PBXBuildFile; fileRef = 34B1B5B0175C7CAA00B0E0ED /* stars.tga */; };
-		34B1B5B7175C82A300B0E0ED /* challenge.tga in Resources */ = {isa = PBXBuildFile; fileRef = 34B1B5B6175C82A300B0E0ED /* challenge.tga */; };
+		34B1B5C3175CADDD00B0E0ED /* tga.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34B1B5C1175CADDD00B0E0ED /* tga.cpp */; };
+		34B1B610175D074200B0E0ED /* sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34B1B60E175D074200B0E0ED /* sphere.cpp */; };
+		34B1B613175D08E000B0E0ED /* challenge.tga in Resources */ = {isa = PBXBuildFile; fileRef = 34B1B611175D08E000B0E0ED /* challenge.tga */; };
+		34B1B614175D08E000B0E0ED /* stars.tga in Resources */ = {isa = PBXBuildFile; fileRef = 34B1B612175D08E000B0E0ED /* stars.tga */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -59,9 +60,6 @@
 		341BDF1B175C60A1006ABE98 /* lighting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lighting.h; sourceTree = "<group>"; };
 		341BDF1C175C60A1006ABE98 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		341BDF1D175C60A1006ABE98 /* MyFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyFunctions.h; sourceTree = "<group>"; };
-		341BDF1E175C60A1006ABE98 /* sphere.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sphere.cpp; sourceTree = "<group>"; };
-		341BDF1F175C60A1006ABE98 /* sphere.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sphere.h; sourceTree = "<group>"; };
-		341BDF20175C60A1006ABE98 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
 		345E5E50175BF2D6005AE9CE /* fmod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmod.h; sourceTree = "<group>"; };
 		345E5E51175BF2D6005AE9CE /* fmod.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fmod.hpp; sourceTree = "<group>"; };
 		345E5E52175BF2D6005AE9CE /* fmod_codec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmod_codec.h; sourceTree = "<group>"; };
@@ -71,8 +69,12 @@
 		345E5E56175BF2D6005AE9CE /* fmod_output.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fmod_output.h; sourceTree = "<group>"; };
 		345E5E58175BF2D6005AE9CE /* libfmodex.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libfmodex.dylib; sourceTree = "<group>"; };
 		345E5E59175BF2D6005AE9CE /* libfmodexL.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libfmodexL.dylib; sourceTree = "<group>"; };
-		34B1B5B0175C7CAA00B0E0ED /* stars.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = stars.tga; sourceTree = "<group>"; };
-		34B1B5B6175C82A300B0E0ED /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
+		34B1B5C1175CADDD00B0E0ED /* tga.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tga.cpp; sourceTree = "<group>"; };
+		34B1B5C2175CADDD00B0E0ED /* tga.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tga.h; sourceTree = "<group>"; };
+		34B1B60E175D074200B0E0ED /* sphere.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sphere.cpp; sourceTree = "<group>"; };
+		34B1B60F175D074200B0E0ED /* sphere.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sphere.h; sourceTree = "<group>"; };
+		34B1B611175D08E000B0E0ED /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; name = challenge.tga; path = data/challenge.tga; sourceTree = "<group>"; };
+		34B1B612175D08E000B0E0ED /* stars.tga */ = {isa = PBXFileReference; lastKnownFileType = file; name = stars.tga; path = data/stars.tga; sourceTree = "<group>"; };
 		AFA41FB61654A10E005DF8E4 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		AFFF96911630FB6A00804536 /* finalProj.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = finalProj.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -109,15 +111,16 @@
 		340CF7531759286100F60BEE /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				34B1B60E175D074200B0E0ED /* sphere.cpp */,
+				34B1B60F175D074200B0E0ED /* sphere.h */,
+				34B1B5C1175CADDD00B0E0ED /* tga.cpp */,
+				34B1B5C2175CADDD00B0E0ED /* tga.h */,
 				340752BA17593F4800B760BC /* Angel */,
 				341BDF19175C60A1006ABE98 /* camera.cpp */,
 				341BDF1A175C60A1006ABE98 /* camera.h */,
 				341BDF1B175C60A1006ABE98 /* lighting.h */,
 				341BDF1C175C60A1006ABE98 /* main.cpp */,
 				341BDF1D175C60A1006ABE98 /* MyFunctions.h */,
-				341BDF1E175C60A1006ABE98 /* sphere.cpp */,
-				341BDF1F175C60A1006ABE98 /* sphere.h */,
-				341BDF20175C60A1006ABE98 /* texture.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -137,8 +140,8 @@
 		3410E3BC17597247004E3EBE /* data */ = {
 			isa = PBXGroup;
 			children = (
-				34B1B5B6175C82A300B0E0ED /* challenge.tga */,
-				34B1B5B0175C7CAA00B0E0ED /* stars.tga */,
+				34B1B611175D08E000B0E0ED /* challenge.tga */,
+				34B1B612175D08E000B0E0ED /* stars.tga */,
 				341BDEED175C5330006ABE98 /* reptile.mp3 */,
 				3410E3CC17597367004E3EBE /* brave.mp3 */,
 				341BDF14175C5967006ABE98 /* fshader.glsl */,
@@ -245,8 +248,8 @@
 				341BDEEE175C5330006ABE98 /* reptile.mp3 in Resources */,
 				341BDF16175C5967006ABE98 /* fshader.glsl in Resources */,
 				341BDF17175C5967006ABE98 /* vshader.glsl in Resources */,
-				34B1B5B1175C7CAA00B0E0ED /* stars.tga in Resources */,
-				34B1B5B7175C82A300B0E0ED /* challenge.tga in Resources */,
+				34B1B613175D08E000B0E0ED /* challenge.tga in Resources */,
+				34B1B614175D08E000B0E0ED /* stars.tga in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,7 +263,8 @@
 				340752C017593F4800B760BC /* InitShader.cpp in Sources */,
 				341BDF21175C60A1006ABE98 /* camera.cpp in Sources */,
 				341BDF22175C60A1006ABE98 /* main.cpp in Sources */,
-				341BDF23175C60A1006ABE98 /* sphere.cpp in Sources */,
+				34B1B5C3175CADDD00B0E0ED /* tga.cpp in Sources */,
+				34B1B610175D074200B0E0ED /* sphere.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,4 +1,4 @@
-//#version 150
+#version 120
 
 varying	vec3	fN;
 varying	vec3	fL;
@@ -10,7 +10,7 @@ uniform float Shininess;
 
 // Texture
 uniform  vec2  st;
-uniform sampler2D texMap;
+uniform sampler2D Tex;
 uniform int fsphereID;
 
 varying vec4 fColor;
@@ -19,9 +19,8 @@ void main()
 { 
 	if (fsphereID == 0)
 	{
-//        gl_FragColor = texture2D(texMap, vec2(gl_TexCoord[0]));
-		gl_FragColor = texture2D(texMap, st).bgra;
-		gl_FragColor.a = 0.5;
+        gl_FragColor = texture2D(Tex, vec2(gl_TexCoord[0]));
+		gl_FragColor.a = 1.0;
 	}
 	else
 	{

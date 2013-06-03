@@ -70,7 +70,7 @@ int thirdLastTick = 0;
 #include "sphere.h"
 #include "camera.h"
 #include "lighting.h"
-#include "texture.h"
+#include "tga.h"
 
 // Variables for window
 int winHeight = 900;
@@ -157,40 +157,28 @@ void myInit( void )
 	//**************************
 	//* TEXTURE VARIABLES ******
 	//**************************
-//	texInit();
-
     if (!stars.loadTGA("stars.tga")){
         printf("Couldn't load tga file");
     }
-    
     glGenTextures( 1, &textureBackground );
     glBindTexture( GL_TEXTURE_2D, textureBackground );
     glTexImage2D(GL_TEXTURE_2D, 0, 4, stars.width, stars.height, 0,
                  (stars.byteCount == 3) ? GL_BGR : GL_BGRA,
                  GL_UNSIGNED_BYTE, stars.data );
-    glGenerateMipmap(GL_TEXTURE_2D);
     
+    glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    
     
     glUniform1i( uTex, 0);
-//    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
-//    glUniform1i( uTex, 0);
-    glUniform1i( glGetUniformLocation(program, "texture"), 0 );
-//
-//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-//    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-//    
-    printf("width: %d, height: %d", stars.width, stars.height);
-//	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
-//	glGenerateMipmap( GL_TEXTURE_2D );
+    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
 
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
-			glEnableVertexAttribArray( vTexCoord );
-            glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
-
+    glEnableVertexAttribArray( vTexCoord );
+    glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
    	
 	//********************************
 	//* BACKGROUND INITIALIZE ********
@@ -241,7 +229,7 @@ void draw_sphere()
 	// Background
 	glUniform1i( sphereID, 0 );
 	setScale( 1000 );
-    setColor( 0, 0, 0, 1, 1 );
+    setColor( 0, 0, 0, .3, 1 );
 	setTranslation( 0, 0, 0 );
 	spawn_sphere();
     
@@ -392,10 +380,10 @@ void callbackDisplay()
 //            }
         }
         
-        int location = 9;
-        if(spec[location] > .1){
+//        int location = 9;
+//        if(spec[location] > .1){
 //            printf("%f \n", spec[location]);
-        }
+//        }
         
         bool beatDetectedSmall = false;
         bool beatDetectedMedium = false;
@@ -693,6 +681,7 @@ void initGlut(int& argc, char** argv)
 {
 	glutInit(&argc, argv);
 #ifdef __APPLE__  // include Mac OS X verions of headers
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
 #else // non-Mac OS X operating systems
     glutInitContextVersion( 3, 2 );
