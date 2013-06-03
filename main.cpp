@@ -381,6 +381,10 @@ void callbackDisplay()
     //        printf("Max vol: %f \n", maxVol);
     
     if (!musicPaused) {
+        for (int i = 0; i < 30; i++){
+            spec[i] = (specLeft[i] + specRight[i]) / 2;
+        }
+        
         int location = 9;
 //		if(spec[location] > .1)
 //			printf("%f \n", spec[location]);
