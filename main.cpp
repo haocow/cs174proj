@@ -31,7 +31,6 @@ bool musicPaused = true;
 int sampleSize = 256;
 
 float *specLeft, *specRight, *spec;
-float *waveLeft, *waveRight;
 char *valueString;
 
 // Beat threshold
@@ -161,30 +160,24 @@ void myInit( void )
 	//**************************
 //	texInit();
 #ifdef __APPLE__
-    if (!stars.loadTGA("stars.tga")){
-        printf("Couldn't load tga file");
-    }
-    
     glGenTextures( 1, &textureBackground );
     glBindTexture( GL_TEXTURE_2D, textureBackground );
     glTexImage2D(GL_TEXTURE_2D, 0, 4, stars.width, stars.height, 0,
                  (stars.byteCount == 3) ? GL_BGR : GL_BGRA,
                  GL_UNSIGNED_BYTE, stars.data );
-    glGenerateMipmap(GL_TEXTURE_2D);
     
+    glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     
     glUniform1i( uTex, 0);
-    glUniform1i( glGetUniformLocation(program, "texture"), 0 );
-
-    printf("width: %d, height: %d", stars.width, stars.height);
-
+    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
+    
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
-			glEnableVertexAttribArray( vTexCoord );
-            glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
+    glEnableVertexAttribArray( vTexCoord );
+    glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
 #else
 	if (!stars.loadTGA("stars.tga")){
         printf("Couldn't load tga file");
@@ -230,8 +223,6 @@ void myInit( void )
     specLeft = new float[sampleSize];
     specRight = new float[sampleSize];
     spec = new float[sampleSize];
-    waveLeft = new float[sampleSize];
-    waveRight = new float[sampleSize];
     
     for (int i = 0; i<sampleSize; i++){
         specLeft[i] = 0.0;
@@ -377,9 +368,6 @@ void callbackDisplay()
     channel->getSpectrum(specLeft, sampleSize, 0, FMOD_DSP_FFT_WINDOW_RECT);
     channel->getSpectrum(specRight, sampleSize, 1, FMOD_DSP_FFT_WINDOW_RECT);
     
-    channel->getWaveData(waveLeft, sampleSize, 0);
-    channel->getWaveData(waveRight, sampleSize, 1);
-    
     // Find max volume
     auto maxIterator = std::max_element(&spec[0], &spec[sampleSize]);
     float maxVol = *maxIterator;
@@ -393,29 +381,14 @@ void callbackDisplay()
     //        printf("Max vol: %f \n", maxVol);
     
     if (!musicPaused) {
-        for (int i = 0; i < 30; i++){
-            spec[i] = (specLeft[i] + specRight[i]) / 2;
-            
-//            if (spec[i] > .3){
-//            printf("Left %i: %f \n", i, specLeft[i]);
-//            printf("Right %i: %f \n", i, specRight[i]);
-                
-//                printf("Wave %i: %f \n", i, (waveLeft[i] + waveRight[i]) / 2);
-//            if (spec[i] > .15)
-//                printf("%i: %f \n", i, spec[i]);
-//            }
-        }
-        
         int location = 9;
-        if(spec[location] > .1){
-//            printf("%f \n", spec[location]);
-        }
+//		if(spec[location] > .1)
+//			printf("%f \n", spec[location]);
         
         bool beatDetectedSmall = false;
         bool beatDetectedMedium = false;
         bool beatDetectedLarge = false;
         
-#ifdef __APPLE__        
         timeval t;
         
         // Test for threshold volume being exceeded (if not currently ignoring track)
@@ -508,7 +481,6 @@ void callbackDisplay()
             secondLastTick = 0;
         if (gettimeofday(&t,NULL) - thirdLastTick >= thirdPostIgnore)
             thirdLastTick = 0;
-#endif
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
