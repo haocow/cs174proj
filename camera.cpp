@@ -14,6 +14,7 @@ void Camera::resetCamera( void )
 {
 	angleTheta = M_PI/90;
 	anglePhi = 0;
+	radiusOfCS = 130;
 }
 
 void Camera::updateCameraPos( void )
