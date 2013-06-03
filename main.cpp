@@ -13,8 +13,8 @@
 #include "texture.h"
 
 // Variables for window
-int winHeight = 800;
-int winWidth = 1066;
+int winHeight = 900;
+int winWidth = 900;
 
 // Variable for program
 GLuint program;
@@ -73,6 +73,12 @@ void myInit( void )
 	ScaleMat = glGetUniformLocation( program, "ScaleMatrix" );
 	setScale(5);
 
+	//**************************
+	//* POSITION VARIABLES *****
+	//**************************
+	//Set variable pointers
+	TransMat = glGetUniformLocation( program, "TranslationMatrix" );
+
    	//********************************
 	//* LIGHT/COLOR INITIALIZE *******
 	//********************************
@@ -116,6 +122,11 @@ void myInit( void )
 	glClearColor( 0.0, 0.0, 0.0, 1.0 );		// Black Background
 }
 
+void spawn_sphere()
+{
+	glDrawArrays( GL_TRIANGLES, 0, numVertices );
+}
+
 void draw_sphere()
 {
 	// 0 = background
@@ -124,18 +135,30 @@ void draw_sphere()
 	// Background
 	glUniform1i( sphereID, 0 );
 	setScale( 1000 );
-	glDrawArrays( GL_TRIANGLES , 0, numVertices );
+	setTranslation( 0, 0, 0 );
+	spawn_sphere();
 
-	// Central Sphere
+	// Left Sphere
 	glUniform1i( sphereID, 1 );
 	setColor( 0.5, 0.87, 0.13, 1.0, 1.0 );
-	setScale( radiusOfCS - 60 );
+	setScale( 10 );
+	setTranslation( -30, 0, 0 );
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
 
-	glDrawArrays( GL_TRIANGLES , 0, numVertices );
+	// Right Sphere
+	glUniform1i( sphereID, 1 );
+	setColor( 0.6, 0.27, 0.83, 1.0, 1.0 );
+	setScale( 14 );
+	setTranslation( 30, 0, 0 );
+	// Lighting
+	glUniform4fv( fMaterialAmbient, 1, ambient_product );
+    glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
+    glUniform4fv( fMaterialSpecular, 1, specular_product );
+	spawn_sphere();
 }
 
 //************************
@@ -148,9 +171,9 @@ void initGlut(int& argc, char** argv)
 	glutInitContextVersion( 3, 2 );
     glutInitContextProfile( GLUT_CORE_PROFILE );
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(100, 50);
-	glutInitWindowSize(1066, 800);
-	glutCreateWindow("TermProject");
+	glutInitWindowPosition(400, 0);
+	glutInitWindowSize(winWidth, winHeight);
+	glutCreateWindow("Music Visualizer - Hao, Nguy, Sabatine");
 
 	glewExperimental = GL_TRUE;
 	glewInit();
@@ -293,6 +316,10 @@ void callbackIdle()
 void callbackTimer(int)
 {
 	glutTimerFunc(1000/30, callbackTimer, 0);
+	
+	// Automatic camera rotation
+	camera.autoRotateCam();
+
 	glutPostRedisplay();
 }
 

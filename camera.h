@@ -1,7 +1,7 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
-const float radiusOfCS = 75;
+const float radiusOfCS = 130;
 
 class Camera
 {
@@ -17,6 +17,7 @@ public:
 	mat4 matrixCamera( void );
 	void resetCamera( void );
 	void updateCameraPos( void );
+	void autoRotateCam( void );
 
 	// Variable Declarations
 	float camX, camY, camZ,

@@ -6,7 +6,7 @@
 GLint fMaterialAmbient, fMaterialDiffuse, fMaterialSpecular;
 
 // Variables for light
-point4 light_position( 100, 100, 10, 0.0 );
+point4 light_position( 0, 100, 0, 0.0 );
 color4 light_ambient( 0.15, 0.15, 0.15, 1.0 );
 color4 light_diffuse( .5, .58, .58, 1 );
 color4 light_specular = (1.0, 1.0, 1.0, 1.0);

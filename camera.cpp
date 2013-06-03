@@ -20,3 +20,11 @@ void Camera::updateCameraPos( void )
 	camY = radiusOfCS*sin(angleTheta)*sin(anglePhi);
 	camZ = radiusOfCS*cos(angleTheta);
 }
+
+void Camera::autoRotateCam( void )
+{
+	angleTheta += M_PI/75;
+	if (angleTheta > 2*M_PI)
+		angleTheta -= 2*M_PI;
+	updateCameraPos();
+}
