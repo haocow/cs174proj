@@ -8,10 +8,13 @@
 
 // Music stuff
 
-#ifdef __APPLE__
 #include "fmod.hpp" //fmod c++ header
 #include "fmod_errors.h"
-#include <sys/time.h>
+#include <algorithm>
+
+#ifdef __APPLE__
+	#include <sys/time.h>
+#endif
 
 FMOD::System            *fmodSystem;
 FMOD::Sound             *song;
@@ -55,7 +58,6 @@ float thirdThresholdVolumeLarge = 0.10f;
 int thirdThresholdBar = 13;            // The bar in the volume distribution to examine
 unsigned int thirdPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
 int thirdLastTick = 0;
-#endif
 
 
 
@@ -158,7 +160,7 @@ void myInit( void )
 	//* TEXTURE VARIABLES ******
 	//**************************
 //	texInit();
-
+#ifdef __APPLE__
     if (!stars.loadTGA("stars.tga")){
         printf("Couldn't load tga file");
     }
@@ -176,30 +178,43 @@ void myInit( void )
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     
     glUniform1i( uTex, 0);
-//    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
-//    glUniform1i( uTex, 0);
     glUniform1i( glGetUniformLocation(program, "texture"), 0 );
-//
-//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-//    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-//    
+
     printf("width: %d, height: %d", stars.width, stars.height);
-//	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
-//	glGenerateMipmap( GL_TEXTURE_2D );
 
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
 			glEnableVertexAttribArray( vTexCoord );
             glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
+#else
+	if (!stars.loadTGA("stars.tga")){
+        printf("Couldn't load tga file");
+    }
 
-   	
+	texInit();
+
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+	glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
+
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
+	glGenerateMipmap( GL_TEXTURE_2D );
+
+	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
+			glEnableVertexAttribArray( vTexCoord );
+            glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
+#endif 	
+
 	//********************************
 	//* BACKGROUND INITIALIZE ********
 	//********************************
 	glClearColor( 0.0, 0.0, 0.0, 1.0 );		// Black Background
     
-    
-#ifdef __APPLE__
-    // MUSIC
+	//********************************
+	//* MUSIC INITIALIZE *************
+	//********************************
     result = FMOD::System_Create(&fmodSystem);
     
     result = fmodSystem->getVersion(&version);
@@ -223,9 +238,6 @@ void myInit( void )
         specRight[i] = 0.0;
         spec[i] = 0.0;
     }
-    
-    
-#endif
 }
 
 void spawn_sphere()
@@ -354,8 +366,6 @@ void draw_sphere()
 // TODO: Don't forget to add glutPostRedisplay().
 void callbackDisplay()
 {
-    
-#ifdef __APPLE__
     // Per-frame FMOD update ('system' is a pointer to FMOD::System)
     fmodSystem->update();
     //        std::transform(&spec[0], &spec[sampleSize], &spec[0], normalize);
@@ -405,7 +415,7 @@ void callbackDisplay()
         bool beatDetectedMedium = false;
         bool beatDetectedLarge = false;
         
-        
+#ifdef __APPLE__        
         timeval t;
         
         // Test for threshold volume being exceeded (if not currently ignoring track)
@@ -498,9 +508,9 @@ void callbackDisplay()
             secondLastTick = 0;
         if (gettimeofday(&t,NULL) - thirdLastTick >= thirdPostIgnore)
             thirdLastTick = 0;
-    }
 #endif
-    
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Update Camera
@@ -551,10 +561,8 @@ void callbackKeyboard(unsigned char key, int x, int y)
 			if (camera.angleTheta > 2*M_PI)
 				camera.angleTheta -= 2*M_PI;
 			camera.updateCameraPos();
-			break;
-            
-#ifdef __APPLE__
-        case 'p':
+			break;       
+		case 'p':
             // Play or pause the sound
             if (!musicPaused){
                 result = channel->setPaused(musicPaused = true);
@@ -562,7 +570,6 @@ void callbackKeyboard(unsigned char key, int x, int y)
                 result = channel->setPaused(musicPaused = false);
             }
             break;
-#endif
 		case ' ':
 			camera.resetCamera();
 			camera.updateCameraPos();
