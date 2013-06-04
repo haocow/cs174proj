@@ -34,9 +34,9 @@ float *specLeft, *specRight, *spec;
 char *valueString;
 
 // Beat threshold
-float beatThresholdVolumeSmall = 0.3f;
-float beatThresholdVolumeMedium = 0.6f;
-float beatThresholdVolumeLarge = 0.9f;
+float beatThresholdVolumeSmall = 0.2f;
+float beatThresholdVolumeMedium = 0.4f;
+float beatThresholdVolumeLarge = 0.6f;
 int beatThresholdBar = 1;            // The bar in the volume distribution to examine
 unsigned int beatPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
 int beatLastTick = 0;                // Time when last beat occurred
@@ -408,32 +408,34 @@ void callbackDisplay()
 {
     // Per-frame FMOD update ('system' is a pointer to FMOD::System)
     fmodSystem->update();
-    //        std::transform(&spec[0], &spec[sampleSize], &spec[0], normalize);
-    //[maxVol] (float dB) -> float { return dB / maxVol; });
-    //    if (!musicPaused)
-    //        printf("%f \n", maxVol);
-    
-    // Get spectrum for left and right stereo channels
-    channel->getSpectrum(specLeft, sampleSize, 0, FMOD_DSP_FFT_WINDOW_RECT);
-    channel->getSpectrum(specRight, sampleSize, 1, FMOD_DSP_FFT_WINDOW_RECT);
-    
-    // Find max volume
-    auto maxIterator = std::max_element(&spec[0], &spec[sampleSize]);
-    float maxVol = *maxIterator;
-    
-    // Normalize
-    if (maxVol != 0)
-        for (int i = 0; i < sampleSize; i++)
-            spec[i] = spec[i]/maxVol;
-    //
-    //    if (!musicPaused)
-    //        printf("Max vol: %f \n", maxVol);
     
     if (!musicPaused) {
-        for (int i = 0; i < 30; i++){
+    
+        // Get spectrum for left and right stereo channels
+        channel->getSpectrum(specLeft, sampleSize, 0, FMOD_DSP_FFT_WINDOW_RECT);
+        channel->getSpectrum(specRight, sampleSize, 1, FMOD_DSP_FFT_WINDOW_RECT);
+        
+        for (int i = 0; i < sampleSize; i++){
             spec[i] = (specLeft[i] + specRight[i]) / 2;
         }
-        
+//        
+//        // Find max volume
+//        auto maxIterator = std::max_element(&spec[0], &spec[sampleSize]);
+//        float maxVol = *maxIterator;
+//        
+////        // Normalize
+////        if (maxVol != 0)
+////            for (int i = 0; i < sampleSize; i++)
+////                spec[i] = spec[i]/maxVol;
+//        //
+//        //    if (!musicPaused)
+//        //        printf("Max vol: %f \n", maxVol);
+//    
+////        for (int i = 0; i < 30; i++){
+////            spec[i] = (specLeft[i] + specRight[i]) / 2;
+//////            printf("%f \n", spec[beatThresholdBar]);
+////        }
+////        
         bool beatDetectedSmall = false;
         bool beatDetectedMedium = false;
         bool beatDetectedLarge = false;
