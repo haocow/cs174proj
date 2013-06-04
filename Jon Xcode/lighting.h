@@ -49,4 +49,19 @@ void setColor(float r, float g, float b, float a, float spec)
 	specular_product = light_specular * material_specular;
 }
 
+// Collision test
+bool testCollisions( vec4 pta, vec4 ptb )   // vec4 = ( x, y, z, scale)
+{
+	// Calculate squared distance between centers
+	float xdiff = pta[0] - ptb[0];
+	float ydiff = pta[1] - ptb[1];
+	float zdiff = pta[2] - ptb[2];
+	float dist2 = (xdiff*xdiff) + (ydiff*ydiff) + (zdiff*zdiff);
+	// Spheres intersect if squared distance is less than
+	// squared sum of radii
+	float radiusSum = pta[3] + ptb[3];
+	return dist2 <= radiusSum * radiusSum;
+}
+
+
 #endif

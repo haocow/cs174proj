@@ -89,10 +89,6 @@ TgaImage stars;
 Sphere sphere;
 Camera camera;
 
-//test
-float scaleVal2 = 5;
-//
-
 GLuint textureBackground, uTex;
 
 void myInit( void )
@@ -693,11 +689,6 @@ void callbackIdle()
 void callbackTimer(int)
 {
 	glutTimerFunc(1000/30, callbackTimer, 0);
-    
-	// Automatic rescaling (for tests)
-	scaleVal2 += 0.1;
-	if ( scaleVal2 > 60 ) {
-		scaleVal2 = 5; }
     
     //1st is for the beats
     

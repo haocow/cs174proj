@@ -25,3 +25,7 @@ The following are the controls:
 For the music library, we used FMOD Ex.
 	This was used for all the things we had to do with the music.
 	We also used it to help us read the song's spectrum.
+    
+For the advanced topic, we did collision detection on the spheres.
+    Basically, whenever a sphere hits another one, it will turn red.
+    We implemented this in lighting.h in the testCollisions function
