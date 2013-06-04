@@ -1,6 +1,6 @@
 /*
  CS 174A Final Project
- Jonathan Nguy, Jonathan Hao, Stephanie
+ Jonathan Nguy, Jonathan Hao, Stephanie Sabatine
  
  Music Visualizer
  
@@ -8,13 +8,10 @@
 
 // Music stuff
 
+#ifdef __APPLE__
 #include "fmod.hpp" //fmod c++ header
 #include "fmod_errors.h"
-#include <algorithm>
-
-#ifdef __APPLE__
-	#include <sys/time.h>
-#endif
+#include <sys/time.h>
 
 FMOD::System            *fmodSystem;
 FMOD::Sound             *song;
@@ -31,6 +28,7 @@ bool musicPaused = true;
 int sampleSize = 256;
 
 float *specLeft, *specRight, *spec;
+float *waveLeft, *waveRight;
 char *valueString;
 
 // Beat threshold
@@ -57,6 +55,7 @@ float thirdThresholdVolumeLarge = 0.10f;
 int thirdThresholdBar = 13;            // The bar in the volume distribution to examine
 unsigned int thirdPostIgnore = 250;   // Number of ms to ignore track for after a beat is recognized
 int thirdLastTick = 0;
+#endif
 
 
 
@@ -89,6 +88,10 @@ TgaImage stars;
 
 Sphere sphere;
 Camera camera;
+
+//test
+float scaleVal2 = 5;
+//
 
 GLuint textureBackground, uTex;
 
@@ -158,55 +161,48 @@ void myInit( void )
 	//**************************
 	//* TEXTURE VARIABLES ******
 	//**************************
-	if (!stars.loadTGA("stars.tga")){
+//	texInit();
+
+    if (!stars.loadTGA("stars.tga")){
         printf("Couldn't load tga file");
     }
-
-#ifdef __APPLE__
+    
     glGenTextures( 1, &textureBackground );
     glBindTexture( GL_TEXTURE_2D, textureBackground );
     glTexImage2D(GL_TEXTURE_2D, 0, 4, stars.width, stars.height, 0,
                  (stars.byteCount == 3) ? GL_BGR : GL_BGRA,
                  GL_UNSIGNED_BYTE, stars.data );
-    
     glGenerateMipmap(GL_TEXTURE_2D);
+    
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     
     glUniform1i( uTex, 0);
-    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
-    
-	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
-    glEnableVertexAttribArray( vTexCoord );
-    glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
-#else
-	texInit();
-
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-
-	glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
-
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
-	glGenerateMipmap( GL_TEXTURE_2D );
+//    glUniform1i( glGetUniformLocation( program, "texMap" ), 0);
+//    glUniform1i( uTex, 0);
+    glUniform1i( glGetUniformLocation(program, "texture"), 0 );
+//
+//	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+//    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+//    
+    printf("width: %d, height: %d", stars.width, stars.height);
+//	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, stars.width, stars.height, 0, GL_RGB, GL_UNSIGNED_BYTE, stars.data );
+//	glGenerateMipmap( GL_TEXTURE_2D );
 
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoords" );
 			glEnableVertexAttribArray( vTexCoord );
             glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(sphere.points) + sizeof(sphere.normals)) );
-#endif 	
 
+   	
 	//********************************
 	//* BACKGROUND INITIALIZE ********
 	//********************************
 	glClearColor( 0.0, 0.0, 0.0, 1.0 );		// Black Background
     
-	//********************************
-	//* MUSIC INITIALIZE *************
-	//********************************
+#ifdef __APPLE__
+    // MUSIC
     result = FMOD::System_Create(&fmodSystem);
     
     result = fmodSystem->getVersion(&version);
@@ -222,12 +218,17 @@ void myInit( void )
     specLeft = new float[sampleSize];
     specRight = new float[sampleSize];
     spec = new float[sampleSize];
+    waveLeft = new float[sampleSize];
+    waveRight = new float[sampleSize];
     
     for (int i = 0; i<sampleSize; i++){
         specLeft[i] = 0.0;
         specRight[i] = 0.0;
         spec[i] = 0.0;
     }
+    
+    
+#endif
 }
 
 void spawn_sphere()
@@ -246,100 +247,151 @@ void draw_sphere()
     setColor( 0, 0, 0, 1, 1 );
 	setTranslation( 0, 0, 0 );
 	spawn_sphere();
+
+	// Our spheres: x, y, z, scaleVal
+	//vec4 a( 0, 0, 0, scaleVal[0] );
+	vec4 a( 0, 0, 0, scaleVal2 );
+	//vec4 b( -21, -39, -26, (0.6*scaleVal[1]) );
+	vec4 b( -10, -10, -10, (0.6*scaleVal[1]) );
+	vec4 c( -31, -36, 30, (1.3*scaleVal[1]) );
+	vec4 d( -14, 37, -41, (1.2*scaleVal[0]) );
+	vec4 e( -30, 22, 38, (0.9*scaleVal[0]) );
+	vec4 f( 30, -30, -30, (1.1*scaleVal[2]) );
+	vec4 g( 31, -20, 37, (0.7*scaleVal[0]) );
+	vec4 h( 36, 30, -35, (0.9*scaleVal[2]) );
+	vec4 i( 40, 24, 40, scaleVal[1] );
     
-	// Origin Sphere
+	// a: Origin Sphere
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
-	setScale( scaleVal[0] );
-	setTranslation( 0, 0, 0 );
+	//setScale( scaleVal[0] );
+	setScale( a[3] );
+	setTranslation( a.x, a.y, a.z );
+	// Collision test
+	if ( testCollisions( a, b ) || testCollisions( a, c ) || testCollisions( a, d ) || testCollisions( a, e )
+		|| testCollisions( a, f ) || testCollisions( a, g ) || testCollisions( a, h ) || testCollisions( a, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-	// Neg-Neg-Neg
+	// b: Neg-Neg-Neg
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
-	setScale( 0.6*scaleVal[1] );
-	setTranslation( -21, -39, -26 );
+	setScale( b[3] );
+	//setTranslation( -21, -39, -26 );
+	setTranslation( b.x, b.y, b.z );
+	// Collision test
+	if ( testCollisions( b, a ) || testCollisions( b, c ) || testCollisions( b, d ) || testCollisions( b, e )
+		|| testCollisions( b, f ) || testCollisions( b, g ) || testCollisions( b, h ) || testCollisions( b, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-	// Neg-Neg-Pos
+	// c: Neg-Neg-Pos
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
-	setScale( 1.3*scaleVal[1] );
-	setTranslation( -31, -36, +30 );
+	setScale( c[3] );
+	setTranslation( c.x, c.y, c.z );
+	// Collision test
+	if ( testCollisions( c, a ) || testCollisions( c, b ) || testCollisions( c, d ) || testCollisions( c, e )
+		|| testCollisions( c, f ) || testCollisions( c, g ) || testCollisions( c, h ) || testCollisions( c, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Neg-Pos-Neg
+    // d: Neg-Pos-Neg
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
-	setScale ( 1.2*scaleVal[0] );
-	setTranslation( -14, 37, -41 );
+	setScale ( d[3] );
+	setTranslation( d.x, d.y, d.z );
+	// Collision test
+	if ( testCollisions( d, a ) || testCollisions( d, b ) || testCollisions( d, c ) || testCollisions( d, e )
+		|| testCollisions( d, f ) || testCollisions( d, g ) || testCollisions( d, h ) || testCollisions( d, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Neg-Pos-Pos
+    // e: Neg-Pos-Pos
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[0].x, colorArray[0].y, colorArray[0].z, 1.0, 1.0 );
-	setScale ( 0.9*scaleVal[0] );
-	setTranslation( -30, 22, 38 );
+	setScale ( e[3] );
+	setTranslation( e.x, e.y, e.z );
+	// Collision test
+	if ( testCollisions( e, a ) || testCollisions( e, b ) || testCollisions( e, c ) || testCollisions( e, d )
+		|| testCollisions( e, f ) || testCollisions( e, g ) || testCollisions( e, h ) || testCollisions( e, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-	// Pos-Neg-Neg
+	// f: Pos-Neg-Neg
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
-	setScale( 1.1*scaleVal[2] );
-	setTranslation( 30, -30, -30 );
+	setScale( f[3] );
+	setTranslation( f.x, f.y, f.z );
+	// Collision test
+	if ( testCollisions( f, a ) || testCollisions( f, b ) || testCollisions( f, c ) || testCollisions( f, d )
+		|| testCollisions( f, e ) || testCollisions( f, g ) || testCollisions( f, h ) || testCollisions( f, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-	// Pos-Neg-Pos
+	// g: Pos-Neg-Pos
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
-	setScale( 0.7*scaleVal[0] );
-	setTranslation( 31, -20, +37 );
+	setScale( g[3] );
+	setTranslation( g.x, g.y, g.z );
+	// Collision test
+	if ( testCollisions( g, a ) || testCollisions( g, b ) || testCollisions( g, c ) || testCollisions( g, d )
+		|| testCollisions( g, e ) || testCollisions( g, f ) || testCollisions( g, h ) || testCollisions( g, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Pos-Pos-Neg
+    // h: Pos-Pos-Neg
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[2].x, colorArray[2].y, colorArray[2].z, 1.0, 1.0 );
-	setScale ( 0.9*scaleVal[2] );
-	setTranslation( 36, 30, -35 );
+	setScale ( h[3] );
+	setTranslation( h.x, h.y, h.z );
+	// Collision test
+	if ( testCollisions( h, a ) || testCollisions( h, b ) || testCollisions( h, c ) || testCollisions( h, d )
+		|| testCollisions( h, e ) || testCollisions( h, f ) || testCollisions( h, g ) || testCollisions( h, i ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
     glUniform4fv( fMaterialSpecular, 1, specular_product );
 	spawn_sphere();
     
-    // Pos-Pos-Pos
+    // i: Pos-Pos-Pos
 	glUniform1i( sphereID, 1 );
 	setColor( colorArray[1].x, colorArray[1].y, colorArray[1].z, 1.0, 1.0 );
-	setScale ( scaleVal[1] );
-	setTranslation( 40, 24, 40 );
+	setScale ( i[3] );
+	setTranslation( i.x, i.y, i.z );
+	// Collision test
+	if ( testCollisions( i, a ) || testCollisions( i, b ) || testCollisions( i, c ) || testCollisions( i, d )
+		|| testCollisions( i, e ) || testCollisions( i, f ) || testCollisions( i, g ) || testCollisions( i, h ) ) {
+		setColor( 1.0, 0.0, 0.0, 1.0, 1.0 ); }
 	// Lighting
 	glUniform4fv( fMaterialAmbient, 1, ambient_product );
     glUniform4fv( fMaterialDiffuse, 1, diffuse_product );
@@ -356,6 +408,8 @@ void draw_sphere()
 // TODO: Don't forget to add glutPostRedisplay().
 void callbackDisplay()
 {
+    
+#ifdef __APPLE__
     // Per-frame FMOD update ('system' is a pointer to FMOD::System)
     fmodSystem->update();
     //        std::transform(&spec[0], &spec[sampleSize], &spec[0], normalize);
@@ -366,6 +420,9 @@ void callbackDisplay()
     // Get spectrum for left and right stereo channels
     channel->getSpectrum(specLeft, sampleSize, 0, FMOD_DSP_FFT_WINDOW_RECT);
     channel->getSpectrum(specRight, sampleSize, 1, FMOD_DSP_FFT_WINDOW_RECT);
+    
+    channel->getWaveData(waveLeft, sampleSize, 0);
+    channel->getWaveData(waveRight, sampleSize, 1);
     
     // Find max volume
     auto maxIterator = std::max_element(&spec[0], &spec[sampleSize]);
@@ -382,15 +439,26 @@ void callbackDisplay()
     if (!musicPaused) {
         for (int i = 0; i < 30; i++){
             spec[i] = (specLeft[i] + specRight[i]) / 2;
+            
+//            if (spec[i] > .3){
+//            printf("Left %i: %f \n", i, specLeft[i]);
+//            printf("Right %i: %f \n", i, specRight[i]);
+                
+//                printf("Wave %i: %f \n", i, (waveLeft[i] + waveRight[i]) / 2);
+//            if (spec[i] > .15)
+//                printf("%i: %f \n", i, spec[i]);
+//            }
         }
         
         int location = 9;
-//		if(spec[location] > .1)
-//			printf("%f \n", spec[location]);
+        if(spec[location] > .1){
+//            printf("%f \n", spec[location]);
+        }
         
         bool beatDetectedSmall = false;
         bool beatDetectedMedium = false;
         bool beatDetectedLarge = false;
+        
         
         timeval t;
         
@@ -484,8 +552,9 @@ void callbackDisplay()
             secondLastTick = 0;
         if (gettimeofday(&t,NULL) - thirdLastTick >= thirdPostIgnore)
             thirdLastTick = 0;
-	}
-
+    }
+#endif
+    
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Update Camera
@@ -537,13 +606,9 @@ void callbackKeyboard(unsigned char key, int x, int y)
 				camera.angleTheta -= 2*M_PI;
 			camera.updateCameraPos();
 			break;
-		case 'i':
-			camera.zoomIn();
-			break;
-		case 'o':
-			camera.zoomOut();
-			break;
-		case 'p':
+            
+#ifdef __APPLE__
+        case 'p':
             // Play or pause the sound
             if (!musicPaused){
                 result = channel->setPaused(musicPaused = true);
@@ -551,6 +616,7 @@ void callbackKeyboard(unsigned char key, int x, int y)
                 result = channel->setPaused(musicPaused = false);
             }
             break;
+#endif
 		case ' ':
 			camera.resetCamera();
 			camera.updateCameraPos();
@@ -588,6 +654,33 @@ void callbackMotion(int x, int y)
 // Called when the mouse is moved with no buttons pressed
 void callbackPassiveMotion(int x, int y)
 {
+	/*
+	float delta = M_PI/90;
+
+	if (x < winWidth/2)
+	{
+		camera.angleTheta -= delta;
+		camera.camAtX = camera.camX + sin(camera.angleTheta);
+		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
+	}
+	else if (x > winWidth/2)
+	{
+		camera.angleTheta += delta;
+		camera.camAtX = camera.camX + sin(camera.angleTheta);
+		camera.camAtZ = camera.camZ - cos(camera.angleTheta);
+	}
+
+	if (y < winHeight/2)
+	{
+		camera.anglePhi -= delta;
+		camera.camAtY = camera.camY - sin(camera.anglePhi);
+	}
+	else if (y > winHeight/2)
+	{
+		camera.anglePhi += delta;
+		camera.camAtY = camera.camY - sin(camera.anglePhi);
+	}
+	*/
 }
 
 // Called when the system is idle. Can be called many times per frame.
@@ -601,12 +694,10 @@ void callbackTimer(int)
 {
 	glutTimerFunc(1000/30, callbackTimer, 0);
     
-	// Automatic rescaling
-//	if ( scaleInc ) {
-//		scaleVal += 0.1; }
-//	else {
-//		scaleVal -= 0.3;
-//}
+	// Automatic rescaling (for tests)
+	scaleVal2 += 0.1;
+	if ( scaleVal2 > 60 ) {
+		scaleVal2 = 5; }
     
     //1st is for the beats
     
@@ -647,6 +738,7 @@ void callbackTimer(int)
 		else if (colorArray[i].z <= 0)
 			colorDir[(i*3) + 2] = false;
     }
+
 	// Automatic camera rotation
 	camera.autoRotateCam();
     
