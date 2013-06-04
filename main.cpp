@@ -249,8 +249,8 @@ void draw_sphere()
 	spawn_sphere();
 
 	// Our spheres: x, y, z, scaleVal
-	//vec4 a( 0, 0, 0, scaleVal[0] );
-	vec4 a( 0, 0, 0, scaleVal2 );
+	vec4 a( 0, 0, 0, scaleVal[0] );
+	//vec4 a( 0, 0, 0, scaleVal2 );
 	//vec4 b( -21, -39, -26, (0.6*scaleVal[1]) );
 	vec4 b( -10, -10, -10, (0.6*scaleVal[1]) );
 	vec4 c( -31, -36, 30, (1.3*scaleVal[1]) );
