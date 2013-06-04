@@ -6,6 +6,7 @@ Stephanie Sabatine  	UID # 803795328
 
 For our term project, we implemented a music visualizer.  Sound files are read and played using the FMOD library.
 Values denoting different decibels of the sound are extracted and used to adjust objects in time with the music.
+Everything is done in real time, so the spheres on the screen will resize based on the sounds.
 
 The user is able to use keyboard controls to adjust the camera to move around the perimeter of the world enclosing the visualizer.
 
@@ -29,3 +30,10 @@ For the music library, we used FMOD Ex.
 For the advanced topic, we did collision detection on the spheres.
     Basically, whenever a sphere hits another one, it will turn red.
     We implemented this in lighting.h in the testCollisions function
+    We basically checked each sphere with the others and checked to see if the overlapped
+    
+Future Improvements:
+    Add more shapes that could better represent the sounds, rather than just spheres.
+    Have a more accurate spectrum (rather than just a 256 sample size)
+    Add mouse movements to navigate through the space
+    Get more accurate dB values from the spectrum
